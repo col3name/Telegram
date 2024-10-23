@@ -58,6 +58,7 @@ public class LinkActionView extends LinearLayout {
     TextView linkView;
     String link;
     BaseFragment fragment;
+    ImageView qrView;
     ImageView optionsView;
     private final TextView copyView;
     private final TextView shareView;
@@ -79,7 +80,7 @@ public class LinkActionView extends LinearLayout {
     private final boolean isChannel;
     private final float[] point = new float[2];
 
-    public LinkActionView(Context context, BaseFragment fragment, BottomSheet bottomSheet, long chatId, boolean permanent, boolean isChannel) {
+    public LinkActionView(Context context, BaseFragment fragment, BottomSheet bottomSheet, long chatId, boolean permanent, boolean isChannel, boolean onlyQrCode) {
         super(context);
         this.fragment = fragment;
         this.permanent = permanent;
@@ -95,11 +96,23 @@ public class LinkActionView extends LinearLayout {
 
         int containerPadding = 4;
         frameLayout.addView(linkView);
+
+        qrView = new ImageView(context);
+        qrView.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.msg_qrcode));
+        qrView.setContentDescription(LocaleController.getString(R.string.GetQRCode));
+        qrView.setScaleType(ImageView.ScaleType.CENTER);
+        qrView.setPadding(0, 0, AndroidUtilities.dp(18), 0);
+
         optionsView = new ImageView(context);
         optionsView.setImageDrawable(ContextCompat.getDrawable(context, R.drawable.ic_ab_other));
         optionsView.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
         optionsView.setScaleType(ImageView.ScaleType.CENTER);
-        frameLayout.addView(optionsView, LayoutHelper.createFrame(40, 48, Gravity.RIGHT | Gravity.CENTER_VERTICAL));
+        if (onlyQrCode) {
+            frameLayout.addView(qrView, LayoutHelper.createFrame(40, 48, Gravity.RIGHT | Gravity.CENTER_VERTICAL));
+        } else {
+            frameLayout.addView(optionsView, LayoutHelper.createFrame(40, 48, Gravity.RIGHT | Gravity.CENTER_VERTICAL));
+        }
+
         addView(frameLayout, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 0, containerPadding, 0, containerPadding, 0));
 
         LinearLayout linearLayout = new LinearLayout(context);
@@ -216,6 +229,10 @@ public class LinkActionView extends LinearLayout {
             });
             builder.setNegativeButton(LocaleController.getString(R.string.Cancel), null);
             fragment.showDialog(builder.create());
+        });
+
+        qrView.setOnClickListener(view12 -> {
+            showQrCode();
         });
 
         optionsView.setOnClickListener(view -> {
@@ -412,6 +429,8 @@ public class LinkActionView extends LinearLayout {
         frameLayout.setBackground(Theme.createSimpleSelectorRoundRectDrawable(AndroidUtilities.dp(8), Theme.getColor(Theme.key_graySection), ColorUtils.setAlphaComponent(Theme.getColor(Theme.key_listSelector), (int) (255 * 0.3f))));
         linkView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
         optionsView.setColorFilter(Theme.getColor(Theme.key_dialogTextGray3));
+        qrView.setColorFilter(Theme.getColor(Theme.key_dialogTextGray3));
+
         //optionsView.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector), 1));
         avatarsContainer.countTextView.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText));
         avatarsContainer.setBackground(Theme.createSimpleSelectorRoundRectDrawable(AndroidUtilities.dp(6), 0, ColorUtils.setAlphaComponent(Theme.getColor(Theme.key_windowBackgroundWhiteBlueText), (int) (255 * 0.3f))));
