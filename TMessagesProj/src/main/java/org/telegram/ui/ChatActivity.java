@@ -7936,9 +7936,9 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         tooltipText.setText(LocaleController.getString(R.string.BotStartTooltip));
         tooltipText.setTextColor(getThemedColor(Theme.key_featuredStickers_buttonText));
         tooltipText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
-        tooltipText.setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(4), AndroidUtilities.dp(8), AndroidUtilities.dp(4));
+//        tooltipText.setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(4), AndroidUtilities.dp(8), AndroidUtilities.dp(4));
         tooltipText.setGravity(Gravity.CENTER);
-        tooltipLayout.setPadding(AndroidUtilities.dp(18), AndroidUtilities.dp(8), AndroidUtilities.dp(18), AndroidUtilities.dp(8));
+        tooltipLayout.setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(6), AndroidUtilities.dp(8), AndroidUtilities.dp(6));
      
         tooltipLayout.setBackgroundColor(Color.parseColor("#88000000"));
         tooltipLayout.addView(imageView);
