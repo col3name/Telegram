@@ -57,6 +57,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.os.Vibrator;
@@ -97,6 +98,7 @@ import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.animation.BounceInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -350,6 +352,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private LinkSpanDrawable.LinksTextView bottomOverlayLinksText;
     private TextView bottomOverlayText;
     private TextView bottomOverlayStartButton;
+    private TextView tooltipText;
+    private LinearLayout tooltipLayout;
     private ImageView bottomOverlayImage;
     private RadialProgressView bottomOverlayProgress;
     private AnimatorSet bottomOverlayAnimation;
@@ -7919,6 +7923,38 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         bottomOverlayChat.setPadding(0, AndroidUtilities.dp(1.5f), 0, 0);
         bottomOverlayChat.setVisibility(View.INVISIBLE);
         bottomOverlayChat.setClipChildren(false);
+
+        tooltipLayout = new LinearLayout(context);
+        tooltipLayout.setOrientation(LinearLayout.HORIZONTAL);
+        ImageView imageView = new ImageView(context);
+        LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
+                AndroidUtilities.dp(20), AndroidUtilities.dp(20)
+        );
+        imageView.setLayoutParams(imageParams);
+        imageView.setImageResource(R.drawable.arrow_more);
+        tooltipText = new TextView(context);
+        tooltipText.setText(LocaleController.getString(R.string.BotStartTooltip));
+        tooltipText.setTextColor(getThemedColor(Theme.key_featuredStickers_buttonText));
+        tooltipText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        tooltipText.setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(4), AndroidUtilities.dp(8), AndroidUtilities.dp(4));
+        tooltipText.setGravity(Gravity.CENTER);
+        tooltipLayout.setPadding(AndroidUtilities.dp(18), AndroidUtilities.dp(8), AndroidUtilities.dp(18), AndroidUtilities.dp(8));
+     
+        tooltipLayout.setBackgroundColor(Color.parseColor("#88000000"));
+        tooltipLayout.addView(imageView);
+        tooltipLayout.addView(tooltipText);
+
+        startPeriodicAnimation(imageView);
+        animateUpDown(tooltipLayout);
+        hideStartBotTooltipText();
+        showStartBotTooltipText();
+
+        contentView.addView(tooltipLayout, LayoutHelper.createFrame(
+                LayoutHelper.WRAP_CONTENT,
+                LayoutHelper.WRAP_CONTENT,
+                Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM,
+                0, 0, 0, 80
+        ));
         contentView.addView(bottomOverlayChat, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 51, Gravity.BOTTOM));
 
         bottomOverlayStartButton = new TextView(context) {
@@ -7959,6 +7995,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         if (currentUser != null && currentUser.bot && currentUser.id != UserObject.VERIFY && !UserObject.isDeleted(currentUser) && !UserObject.isReplyUser(currentUser) && !isInScheduleMode() && chatMode != MODE_PINNED && chatMode != MODE_SAVED && !isReport()) {
             bottomOverlayStartButton.setVisibility(View.VISIBLE);
             bottomOverlayChat.setVisibility(View.VISIBLE);
+            showStartBotTooltipText();
         }
 
         bottomOverlayLinksText = new LinkSpanDrawable.LinksTextView(context, themeDelegate);
@@ -8054,6 +8091,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     getMessagesController().sendBotStart(currentUser, botUser);
                 } else {
                     getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of("/start", dialog_id, null, null, null, false, null, null, null, true, 0, null, false));
+                    hideStartBotTooltipText();
                 }
                 botUser = null;
                 updateBottomOverlay();
@@ -8470,6 +8508,73 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         Timer.finish(t);
 
         return fragmentView;
+    }
+
+    private void startPeriodicAnimation(final View view) {
+        final Handler handler = new Handler();
+        final Runnable animationRunnable = new Runnable() {
+            @Override
+            public void run() {
+                ObjectAnimator animator = ObjectAnimator.ofFloat(view, "translationY", 0, 2);
+                animator.setDuration(800);
+                animator.setRepeatCount(0);
+                animator.setRepeatMode(ObjectAnimator.REVERSE);
+                animator.setInterpolator(new BounceInterpolator());
+
+                animator.start();
+
+                handler.postDelayed(this, 4000);
+            }
+        };
+
+        handler.postDelayed(animationRunnable, 2000);
+    }
+
+    private void animateUpDown(View view) {
+        final ObjectAnimator animator = ObjectAnimator.ofFloat(view, "translationY", 0, 2);
+        animator.setDuration(1000);
+        animator.setInterpolator(new BounceInterpolator());
+        animator.setRepeatCount(0);
+        animator.setRepeatMode(ObjectAnimator.REVERSE);
+        animator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {}
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                new Handler().postDelayed(animator::start, 4000);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {}
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {}
+        });
+
+        animator.start();
+    }
+
+    private void showStartBotTooltipText() {
+        if (currentUser != null && currentUser.bot && botUser != null && botUser.length() == 0)  {
+            tooltipText.setVisibility(View.VISIBLE);
+            tooltipLayout.setVisibility(View.VISIBLE);
+            //  String until = LocaleController.formatDateTime(getMessagesController().transcribeAudioTrialCooldownUntil, true);
+            // BulletinFactory.of(ChatActivity.this).createSimpleBulletin(
+            //     R.raw.photo_arrow,
+            //     new SpannableStringBuilder().append(
+            //         LocaleController.getString(R.string.BotStartTooltip)
+            //     ),
+            //     6,
+            //     7000
+            // ).show(true);
+            // BotWebViewVibrationEffect.APP_ERROR.vibrate();
+        }
+    }
+
+    private void hideStartBotTooltipText() {
+        tooltipText.setVisibility(View.GONE);
+        tooltipLayout.setVisibility(View.GONE);
     }
 
     private void checkBotMessageHint() {
@@ -25178,6 +25283,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             if (userBlocked) {
                 if (bottomOverlayStartButton != null) {
                     bottomOverlayStartButton.setVisibility(View.GONE);
+                    hideStartBotTooltipText();
                 }
                 if (currentUser.bot) {
                     bottomOverlayChatText.setText(LocaleController.getString(R.string.BotUnblock));
@@ -25206,6 +25312,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 //                bottomOverlayStartButton.setText(LocaleController.getString(R.string.BotStart));
                 if (bottomOverlayStartButton != null) {
                     bottomOverlayStartButton.setVisibility(View.VISIBLE);
+                    showStartBotTooltipText();
                 }
                 bottomOverlayChatText.setVisibility(View.GONE);
                 chatActivityEnterView.hidePopup(false);
@@ -25408,6 +25515,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
         if (sentBotStart) {
             bottomOverlayChat.setVisibility(View.GONE);
+            hideStartBotTooltipText();
             chatActivityEnterView.setVisibility(View.VISIBLE);
             chatActivityEnterView.setBotInfo(botInfo);
         }
