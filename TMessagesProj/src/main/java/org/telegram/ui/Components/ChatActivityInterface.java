@@ -51,6 +51,10 @@ public interface ChatActivityInterface {
 
     }
 
+    default void notifyStream() {
+
+    }
+
     SizeNotifierFrameLayout getContentView();
 
     ActionBar getActionBar();

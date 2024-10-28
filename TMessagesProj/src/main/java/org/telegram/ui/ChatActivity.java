@@ -98,10 +98,16 @@ import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.GridView;
+import android.widget.ArrayAdapter;
+import android.widget.Toast;
+
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -354,6 +360,12 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private TextView bottomOverlayStartButton;
     private TextView tooltipText;
     private LinearLayout tooltipLayout;
+    private GridView gridView;
+    // private RecyclerListView gridView;
+    protected LongSparseArray<TLRPC.Dialog> selectedDialogs = new LongSparseArray<>();
+    protected Map<TLRPC.Dialog, TLRPC.TL_forumTopic> selectedDialogTopics = new HashMap<>();
+    private UserAdapter listAdapter;
+    private Button completeButton;
     private ImageView bottomOverlayImage;
     private RadialProgressView bottomOverlayProgress;
     private AnimatorSet bottomOverlayAnimation;
@@ -550,6 +562,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private UndoView undoView;
     private UndoView topUndoView;
     private Bulletin pinBulletin;
+    private Bulletin streamNotifiedBulletin;
     private boolean showPinBulletin;
     private int pinBullerinTag;
     protected boolean openKeyboardOnAttachMenuClose;
@@ -588,6 +601,10 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
     private byte[] reportOption;
     public boolean isReport() {
         return !TextUtils.isEmpty(reportTitle);
+    }
+
+    public void notifyStream() {
+        streamNotifiedBulletin = BulletinFactory.createStreamNotifiedBulletin(ChatActivity.this, themeDelegate).show();
     }
 
     @Nullable
@@ -6119,6 +6136,11 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
 
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                if (tooltipText != null) {
+                    gridView.setVisibility(View.INVISIBLE);
+                    // contentView.removeView(tooltipText);
+                }
+                
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                     if (pollHintCell != null) {
                         pollHintView.showForMessageCell(pollHintCell, -1, pollHintX, pollHintY, true);
@@ -7955,6 +7977,101 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                 Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM,
                 0, 0, 0, 80
         ));
+
+        gridView = new GridView(getContext());
+        // gridView.setPadding(18, 18, 18, 18);
+        gridView.setBackgroundColor(Color.WHITE);
+        gridView.setNumColumns(5);
+        gridView.setHorizontalSpacing(10);
+        gridView.setVerticalSpacing(10);
+//        gridView.setVisibility(View.INVISIBLE);
+        gridView.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
+
+        gridView.setLayoutParams(new GridView.LayoutParams(
+                GridView.LayoutParams.WRAP_CONTENT,
+                GridView.LayoutParams.WRAP_CONTENT
+        ));
+        gridView.setHorizontalScrollBarEnabled(true);
+        completeButton = new Button(getContext());
+        completeButton.setText("CP");
+        completeButton.setGravity(Gravity.LEFT | Gravity.BOTTOM);
+
+        completeButton.setLayoutParams(new LinearLayout.LayoutParams( GridView.LayoutParams.WRAP_CONTENT,  GridView.LayoutParams.WRAP_CONTENT));
+        completeButton.setTextColor(Color.BLACK);
+//        completeButton.setBackground(createCircleDrawable(40, Color.WHITE));
+//        completeButton.setX(10); // Set X based on myButton's final position
+//        completeButton.setY(10);
+        completeButton.setWidth(20);
+        completeButton.setHeight(20);
+
+        // Create sample data
+        List<User> users = new ArrayList<>();
+        users.add(new User(1, "Alice", "https://example.com/image1.png"));
+        users.add(new User(2, "Bob", "https://example.com/image2.png"));
+        users.add(new User(3, "Charlie", "https://example.com/image3.png"));
+        users.add(new User(4, "Diana", "https://example.com/image4.png"));
+        users.add(new User(5, "Edward", "https://example.com/image5.png"));
+
+        UserAdapter2 adapter = new UserAdapter2(getContext(), users);
+        listAdapter = new UserAdapter(getContext(), 5);
+        // gridView.setAdapter(adapter);
+        gridView.setAdapter(listAdapter);
+        // if (listAdapter == null) {
+        //     listAdapter = new UserAdapter(getContext(), 5);
+        //     gridView.setAdapter(listAdapter);
+        // } else {
+        //     gridView.setAdapter(listAdapter);
+        // }
+//        gridView.setVisiblity(View.VISIBLE);
+        // LinearLayout layout = new LinearLayout(getContext());
+        // layout.setOrientation(LinearLayout.VERTICAL);
+        // layout.addView(gridView);
+        // layout.addView(completeButton);
+        // gridView.setOnItemClickListener((view, position) -> {
+        //     // if (position < 0) {
+        //     //     return;
+        //     // }
+        //     TLRPC.Dialog dialog = listAdapter.getItem(position);
+        //     if (dialog == null) {
+        //         return;
+        //     }
+        //     Toast.makeText(getContext(), "Clicked: " + dialog.id, Toast.LENGTH_SHORT).show();
+        //     // selectDialog(view, dialog);
+        // });
+       gridView.setOnItemClickListener((parent, view, position, id) -> {
+        //    User clickedUser = (User) parent.getItemAtPosition(position);
+           // Pair<Integer, Integer> endPosition = getViewCoordinate(bottomOverlayChatText);
+        //    Pair<Integer, Integer> endPosition = new Pair(200, 200);
+
+            // TLRPC.Dialog dialog = listAdapter.getItem(position);
+            // if (dialog == null) {
+                // return;
+            // }
+            Toast.makeText(getContext(), "Clicked: " +" clickedUser.name", Toast.LENGTH_SHORT).show();
+                    // selectDialog(view, dialog);
+        //    Pair<Integer, Integer> startPosition = getViewCoordinate(view);
+        //    Pair<Integer, Integer> endPosition = new Pair(0, 1500);
+
+        //    Button button = createButtonAtItemPosition(view, clickedUser.getName());
+        //    contentView.addView(button);
+        //    ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(gridView, "alpha", 1f, 0f);
+        //    alphaAnimator.setInterpolator(new CubicBezierInterpolator(.43, 0, .01, 1));
+        //    alphaAnimator.start();
+        //    alphaAnimator.setDuration(100);
+        //    startAnimation2(button, startPosition, endPosition, 500);
+
+        //    // startAnimation2(view, endPosition, 500);
+        //    Toast.makeText(getContext(), "Clicked: " + clickedUser.getName(), Toast.LENGTH_SHORT).show();
+       });
+
+        // contentView.addView(gridView, LayoutHelper.createFrame(
+        //     LayoutHelper.WRAP_CONTENT,
+        //     LayoutHelper.WRAP_CONTENT,
+        //     Gravity.CENTER | Gravity.CENTER,
+        //     0, 0,  AndroidUtilities.dp(18), 0
+        // ));
+        // contentView.addView(gridView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 51, Gravity.BOTTOM));
+
         contentView.addView(bottomOverlayChat, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 51, Gravity.BOTTOM));
 
         bottomOverlayStartButton = new TextView(context) {
@@ -35156,6 +35273,150 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         }
         return chatMessageCellDelegate;
     }
+    
+    private Button createButtonAtItemPosition(View clickedView, String userName) {
+        // Create a new button
+        Button newButton = new Button(getContext());
+        newButton.setText("User: " + userName);
+        newButton.setBackgroundColor(Color.BLUE);
+        newButton.setTextColor(Color.WHITE);
+
+        // Get the location of the clicked view
+        int[] location = new int[2];
+        clickedView.getLocationOnScreen(location);
+
+        // Set the layout parameters for the new button
+        FrameLayout.LayoutParams buttonParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        buttonParams.leftMargin = location[0];  // X position of the clicked view
+        buttonParams.topMargin = location[1] - 40;   // Y position of the clicked view
+
+        newButton.setLayoutParams(buttonParams);
+
+        // Add the new button to the FrameLayout
+        return newButton;
+    }
+
+    private void startAnimation2(View view, Pair<Integer, Integer> startPosition, Pair<Integer, Integer> endPosition, int duration) {
+        Integer diffX = endPosition.first - startPosition.first - -20;
+        Integer diffY = endPosition.second - startPosition.second + 20;
+        Log.d("CompleteButton", "end X: " + endPosition.first + ", Y: " + endPosition.second);
+        Log.d("CompleteButton", "start X: " + startPosition.first + ", Y: " + startPosition.second);
+        Log.d("CompleteButton", "diff X: " + diffX + ", Y: " + diffY);
+        ObjectAnimator animatorX = ObjectAnimator.ofFloat(view, "translationX", diffX);
+        ObjectAnimator animatorY = ObjectAnimator.ofFloat(view, "translationY", diffY);
+        ObjectAnimator scaleX = ObjectAnimator.ofFloat(view, "scaleX", 0.5f);
+        ObjectAnimator scaleY = ObjectAnimator.ofFloat(view, "scaleY", 0.5f);
+        ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(view, "alpha", 1f, 0f);
+
+        // Set the duration
+        animatorX.setDuration(duration);
+        animatorY.setDuration(duration);
+        scaleX.setDuration(duration);
+        scaleY.setDuration(duration);
+        alphaAnimator.setDuration(100);
+
+        animatorX.setInterpolator(new CubicBezierInterpolator(.43, 0, .01, 1));
+        animatorY.setInterpolator(new CubicBezierInterpolator(.65, -0.01, .31, 1));
+        scaleX.setInterpolator(new AccelerateDecelerateInterpolator());
+        scaleY.setInterpolator(new AccelerateDecelerateInterpolator());
+        alphaAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
+
+        ObjectAnimator alphaAnimatorTooltip = ObjectAnimator.ofFloat(gridView, "alpha", 1f, 0f);
+        alphaAnimatorTooltip.setDuration(500);
+        alphaAnimatorTooltip.setInterpolator(new CubicBezierInterpolator(1, 0, 0, 1));
+
+//        cubic-bezier(0,.01,0,1.01)
+        // Combine both animations in an AnimatorSet
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.playTogether(animatorX, animatorY, scaleX, scaleY, alphaAnimatorTooltip);
+        animatorSet.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(android.animation.Animator animation) {
+                view.setVisibility(View.GONE); // Hide the view
+            }
+        });
+        new Handler().postDelayed(() -> {
+//            completeButton.setVisibility(View.INVISIBLE);
+//            showCompleteButton(completeButton);
+        }, duration - 80);
+        animatorSet.start();
+    }
+
+
+    private Pair<Integer, Integer> getViewCoordinate(View view) {
+        int[] location = new int[2];
+        view.getLocationOnScreen(location);
+
+        int x = location[0]; // Absolute X coordinate
+        int y = location[1]; // Absolute Y coordinate
+
+        // Now you can use x and y as needed
+        return new Pair<>(x, y);
+    }
+
+
+    class User {
+        private int id;
+        private String name;
+        private String image;
+
+        public User(int id, String name, String image) {
+            this.id = id;
+            this.name = name;
+            this.image = image;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getImage() {
+            return image;
+        }
+    }
+
+    // class UserAdapter extends ArrayAdapter<User> {
+
+    //     public UserAdapter(Context context, List<User> users) {
+    //         super(context, 0, users);
+    //     }
+
+    //     @Override
+    //     public View getView(int position, View convertView, ViewGroup parent) {
+    //         // Create a simple layout with ImageView and TextView for each user
+    //         LinearLayout layout = new LinearLayout(getContext());
+    //         layout.setOrientation(LinearLayout.VERTICAL);
+
+    //         ImageView imageView = new ImageView(getContext());
+    //         TextView textView = new TextView(getContext());
+    //         imageView.setBackgroundColor(Color.BLACK);
+    //         // Set the text and load the image
+    //         User user = getItem(position);
+    //         textView.setText(user.getName());
+
+    //         // Use Picasso (or Glide) to load the image into the ImageView
+    // //        Picasso.get().load(user.getImage()).into(imageView);
+
+    //         // Layout parameters
+    //         int imageSize = 50;
+    //         imageView.setLayoutParams(new LinearLayout.LayoutParams(imageSize, imageSize));
+    //         textView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+    //         // Add views to layout
+    //         layout.addView(imageView);
+    //         layout.addView(textView);
+
+    //         return layout;
+    //     }
+    // }
+
     private class ChatMessageCellDelegate implements ChatMessageCell.ChatMessageCellDelegate {
         @Override
         public boolean isReplyOrSelf() {
@@ -35380,7 +35641,7 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     arrayList.add(messageObject);
                 }
                 final boolean includeStory = getMessagesController().storiesEnabled() && StoryEntry.canRepostMessage(messageObject);
-                showDialog(new ShareAlert(getContext(), ChatActivity.this, arrayList, null, null, ChatObject.isChannel(currentChat), null, null, false, false, includeStory, themeDelegate) {
+                final ShareAlert shareAlert = new ShareAlert(getContext(), ChatActivity.this, arrayList, null, null, ChatObject.isChannel(currentChat), null, null, false, false, includeStory, themeDelegate) {
                     { includeStoryFromMessage = includeStory; }
                     @Override
                     public void dismissInternal() {
@@ -35449,7 +35710,8 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                             undoView.showWithAction(0, UndoView.ACTION_FWD_MESSAGES, count, dids.size(), null, null);
                         }
                     }
-                });
+                };
+                showDialog(shareAlert);
                 AndroidUtilities.setAdjustResizeToNothing(getParentActivity(), classGuid);
                 fragmentView.requestLayout();
             }
@@ -35628,6 +35890,251 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
             openProfile(user, ChatObject.isForum(currentChat) || isThreadChat());
         }
 
+
+        @Override
+        public void hideSideButton() {
+            if (gridView != null) {
+                // contentView.removeView(gridView);
+                // gridView.setVisibility(View.INVISIBLE);
+            }
+        }
+
+
+        @Override
+        public void didLongPressSideButton(ChatMessageCell cell, TLRPC.User user, float touchX, float touchY) {
+            if (gridView != null) {
+                contentView.removeView(gridView);
+                // gridView.setVisibility(View.INVISIBLE);
+            }
+            gridView = new GridView(getContext());
+            gridView.setBackgroundColor(Color.RED);
+            gridView.setNumColumns(5);
+            gridView.setHorizontalSpacing(10);
+            gridView.setVerticalSpacing(10);
+            gridView.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
+
+            gridView.setLayoutParams(new GridView.LayoutParams(
+                    GridView.LayoutParams.WRAP_CONTENT,
+                    GridView.LayoutParams.WRAP_CONTENT
+            ));
+            gridView.setHorizontalScrollBarEnabled(true);
+            completeButton = new Button(getContext());
+            completeButton.setText("CP");
+            completeButton.setGravity(Gravity.LEFT | Gravity.BOTTOM);
+
+            completeButton.setLayoutParams(new LinearLayout.LayoutParams( GridView.LayoutParams.WRAP_CONTENT,  GridView.LayoutParams.WRAP_CONTENT));
+            completeButton.setTextColor(Color.BLACK);
+    //        completeButton.setBackground(createCircleDrawable(40, Color.WHITE));
+    //        completeButton.setX(10); // Set X based on myButton's final position
+    //        completeButton.setY(10);
+            completeButton.setWidth(20);
+            completeButton.setHeight(20);
+
+            // Create sample data
+            List<User> users = new ArrayList<>();
+            users.add(new User(1, "Alice", "https://example.com/image1.png"));
+            users.add(new User(2, "Bob", "https://example.com/image2.png"));
+            users.add(new User(3, "Charlie", "https://example.com/image3.png"));
+            users.add(new User(4, "Diana", "https://example.com/image4.png"));
+            users.add(new User(5, "Edward", "https://example.com/image5.png"));
+
+            UserAdapter2 adapter = new UserAdapter2(getContext(), users);
+            gridView.setAdapter(adapter);
+            gridView.setBackgroundColor(Color.WHITE);
+            // if (listAdapter == null) {
+            //     listAdapter = new UserAdapter(getContext(), 5);
+            //     gridView.setAdapter(listAdapter);
+            // } else {
+            //     gridView.setAdapter(listAdapter);
+            // }
+
+            gridView.setAlpha(1.0f); 
+//        button.setVisibility(View.INVISIBLE);
+            gridView.setVisibility(View.VISIBLE);
+            // tooltipText = new TextView(getContext());
+            int[] position = new int[2];
+            cell.getLocationOnScreen(position);
+            int x = position[0];
+            int height = cell.getMeasuredHeight();
+            int y = position[1] + height - 420;
+            String text = "didLongPressSideButtonHello " + String.valueOf(touchX) + ", " + String.valueOf(touchY) + " X " + x + ", " +  y + " height=" + height;
+
+            // hideStartBotTooltipText();
+            Log.d("didLongPressSideButtonHello", text);
+            // tooltipText.setText(LocaleController.getString(R.string.BotStartTooltip));
+            gridView.setTranslationY(y);
+            gridView.setBackgroundColor(Color.WHITE);
+
+            contentView.addView(gridView, LayoutHelper.createFrame(
+                LayoutHelper.WRAP_CONTENT,
+                LayoutHelper.WRAP_CONTENT,
+                Gravity.RIGHT | Gravity.TOP,
+                0, 0,  AndroidUtilities.dp(18), 0
+            ));
+
+            gridView.setOnItemClickListener((parent, view, positionIndex, id) -> {
+                // User clickedUser = (User) parent.getItemAtPosition(positionIndex);
+                //  Pair<Integer, Integer> endPosition = getViewCoordinate(bottomOverlayChatText);
+                // Pair<Integer, Integer> endPosition = new Pair(200, 200);
+
+            //    TLRPC.Dialog dialog = listAdapter.getItem(positionIndex);
+            //     if (dialog == null) {
+            //         return;
+            //         }
+                Toast.makeText(getContext(), "Clicked: " + "dialog.id", Toast.LENGTH_SHORT).show();
+            });
+            // gridView.setOnItemClickListener((view, positionIndex) -> {
+            //     if (positionIndex < 0) {
+            //         return;
+            //     }
+            //     TLRPC.Dialog dialog = listAdapter.getItem(positionIndex);
+            //     if (dialog == null) {
+            //         return;
+            //     }
+            //     Toast.makeText(getContext(), "Clicked: " + dialog.id, Toast.LENGTH_SHORT).show();
+            //     // selectDialog(view, dialog);
+            // });
+                
+            // gridView.setOnItemClickListener((parent, view, position2, id) -> {
+            //     User clickedUser = (User) parent.getItemAtPosition(position2);
+            //     // Pair<Integer, Integer> endPosition = getViewCoordinate(bottomOverlayChatText);
+            //     // Pair<Integer, Integer> endPosition = new Pair(200, 200);
+
+            //     Pair<Integer, Integer> startPosition = getViewCoordinate(view);
+            //     Pair<Integer, Integer> endPosition = new Pair(0, 1000);
+
+            //     Button button = createButtonAtItemPosition(view, clickedUser.getName());
+            //     contentView.addView(button);
+            //     ObjectAnimator alphaAnimator = ObjectAnimator.ofFloat(gridView, "alpha", 1f, 0f);
+            //     alphaAnimator.setInterpolator(new CubicBezierInterpolator(.43, 0, .01, 1));
+            //     alphaAnimator.start();
+            //     alphaAnimator.setDuration(100);
+            //     startAnimation2(button, startPosition, endPosition, 500);
+
+            //     // startAnimation2(view, endPosition, 500);
+            //     Toast.makeText(getContext(), "Clicked: " + clickedUser.getName(), Toast.LENGTH_SHORT).show();
+            // });
+            // tooltipText.setTranslationX(x);
+            // // tooltipText.setTextColor(getThemedColor(Theme.key_featuredStickers_buttonText));
+            // tooltipText.setTextColor(Color.RED);
+            // tooltipText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+            //        tooltipText.setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(4), AndroidUtilities.dp(8), AndroidUtilities.dp(4));
+            // tooltipText.setGravity(Gravity.CENTER);
+
+//            ImageView imageView = new ImageView(getContext());
+//            LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
+//                    AndroidUtilities.dp(20), AndroidUtilities.dp(20)
+//            );
+//            imageView.setLayoutParams(imageParams);
+//            imageView.setImageResource(R.drawable.arrow_more);
+//
+//            tooltipLayout.setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(6), AndroidUtilities.dp(8), AndroidUtilities.dp(6));
+//
+//            tooltipLayout.setBackgroundColor(Color.parseColor("#88000000"));
+//            tooltipLayout.addView(imageView);
+//            tooltipLayout.addView(tooltipText);
+//
+//            animateUpDown(tooltipLayout);
+//            hideStartBotTooltipText();
+//            showStartBotTooltipText();
+
+//            contentView.addView(gridView, LayoutHelper.createFrame(
+//                LayoutHelper.WRAP_CONTENT,
+//                LayoutHelper.WRAP_CONTENT,
+//                Gravity.RIGHT | Gravity.TOP,
+//                0, 0,  AndroidUtilities.dp(18), 0
+//            ));
+            // MessageObject messageObject = cell.getMessageObject();
+            // ArrayList<MessageObject> arrayList = null;
+            // if (messageObject.getGroupId() != 0) {
+            //     MessageObject.GroupedMessages groupedMessages = groupedMessagesMap.get(messageObject.getGroupId());
+            //     if (groupedMessages != null) {
+            //         arrayList = groupedMessages.messages;
+            //     }
+            // }
+            // if (arrayList == null) {
+            //     arrayList = new ArrayList<>();
+            //     arrayList.add(messageObject);
+            // }
+            // final boolean includeStory = getMessagesController().storiesEnabled() && StoryEntry.canRepostMessage(messageObject);
+            // final ShareAlert shareAlert = new ShareAlert(getContext(), ChatActivity.this, arrayList, null, null, ChatObject.isChannel(currentChat), null, null, false, false, includeStory, themeDelegate) {
+            //     { includeStoryFromMessage = includeStory; }
+            //     @Override
+            //     public void dismissInternal() {
+            //         AndroidUtilities.requestAdjustResize(getParentActivity(), classGuid);
+            //         super.dismissInternal();
+            //         if (chatActivityEnterView.getVisibility() == View.VISIBLE) {
+            //             fragmentView.requestLayout();
+            //         }
+            //     }
+
+            //     @Override
+            //     protected void onShareStory(View cell) {
+            //         StoryRecorder.SourceView sourceView = null;
+            //         if (cell instanceof ShareDialogCell) {
+            //             sourceView = StoryRecorder.SourceView.fromShareCell((ShareDialogCell) cell);
+            //         }
+            //         final ArrayList<MessageObject> messageObjects = new ArrayList<>();
+            //         MessageObject.GroupedMessages groupedMessages = messageObject.getGroupId() != 0 ? groupedMessagesMap.get(messageObject.getGroupId()) : null;
+            //         if (groupedMessages != null) {
+            //             messageObjects.addAll(groupedMessages.messages);
+            //         } else {
+            //             messageObjects.add(messageObject);
+            //         }
+            //         StoryRecorder editor = StoryRecorder.getInstance(getParentActivity(), currentAccount);
+            //         editor.setOnPrepareCloseListener((t, close, sent, did) -> {
+            //             if (sent) {
+            //                 AndroidUtilities.runOnUIThread(() -> {
+            //                     String chatTitle = "";
+            //                     if (did < 0) {
+            //                         TLRPC.Chat chat = getMessagesController().getChat(-did);
+            //                         if (chat != null) {
+            //                             chatTitle = chat.title;
+            //                         }
+            //                     }
+            //                     BulletinFactory.of(ChatActivity.this).createSimpleBulletin(R.raw.contact_check, AndroidUtilities.replaceTags(
+            //                         TextUtils.isEmpty(chatTitle) ?
+            //                             LocaleController.getString(R.string.RepostedToProfile) :
+            //                             LocaleController.formatString(R.string.RepostedToChannelProfile, chatTitle)
+            //                     )).show();
+            //                 });
+            //                 dismiss();
+            //                 editor.replaceSourceView(null);
+            //             } else {
+            //                 StoryRecorder.SourceView sourceView2 = null;
+            //                 if (cell instanceof ShareDialogCell && cell.isAttachedToWindow()) {
+            //                     sourceView2 = StoryRecorder.SourceView.fromShareCell((ShareDialogCell) cell);
+            //                 }
+            //                 editor.replaceSourceView(sourceView2);
+            //             }
+            //             AndroidUtilities.runOnUIThread(close);
+            //         });
+            //         editor.openRepost(sourceView, StoryEntry.repostMessage(messageObjects));
+            //     }
+
+            //     @Override
+            //     protected void onSend(LongSparseArray<TLRPC.Dialog> dids, int count, TLRPC.TL_forumTopic topic) {
+            //         createUndoView();
+            //         if (undoView == null) {
+            //             return;
+            //         }
+            //         if (dids.size() == 1) {
+            //             if (dids.valueAt(0).id != getUserConfig().getClientUserId() || !BulletinFactory.of(ChatActivity.this).showForwardedBulletinWithTag(dids.valueAt(0).id, count)) {
+            //                 undoView.showWithAction(dids.valueAt(0).id, UndoView.ACTION_FWD_MESSAGES, count, topic, null, null);
+            //             }
+            //         } else {
+            //             undoView.showWithAction(0, UndoView.ACTION_FWD_MESSAGES, count, dids.size(), null, null);
+            //         }
+            //     }
+            // };
+            // showDialog(shareAlert);
+            // AndroidUtilities.setAdjustResizeToNothing(getParentActivity(), classGuid);
+            // fragmentView.requestLayout();
+        }
+         public float pxToDp( int px) {
+            float density = getContext().getResources().getDisplayMetrics().density;
+            return (int) px / density;
+        }
         @Override
         public boolean didLongPressUserAvatar(ChatMessageCell cell, TLRPC.User user, float touchX, float touchY) {
             if (isAvatarPreviewerEnabled()) {
@@ -39472,6 +39979,282 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
         int lastBottom;
     }
 
+
+    class UserAdapter2 extends ArrayAdapter<User> {
+
+        public UserAdapter2(Context context, List<User> users) {
+            super(context, 0, users);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            // Create a simple layout with ImageView and TextView for each user
+            LinearLayout layout = new LinearLayout(getContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+
+            ImageView imageView = new ImageView(getContext());
+            TextView textView = new TextView(getContext());
+            imageView.setBackgroundColor(Color.BLACK);
+            // Set the text and load the image
+            User user = getItem(position);
+            textView.setText(user.getName());
+
+            // Use Picasso (or Glide) to load the image into the ImageView
+    //        Picasso.get().load(user.getImage()).into(imageView);
+
+            // Layout parameters
+            int imageSize = 50;
+            imageView.setLayoutParams(new LinearLayout.LayoutParams(imageSize, imageSize));
+            textView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            textView.setTranslationY(-20);
+            // Add views to layout
+            layout.addView(textView);
+            layout.addView(imageView);
+
+            return layout;
+        }
+    }
+    private class UserAdapter extends ArrayAdapter<TLRPC.Dialog> {
+
+        private class MyStoryDialog extends TLRPC.Dialog {
+            { id = Long.MAX_VALUE; }
+        }
+
+        private Context context;
+        private int maxUsers;
+        private int currentCount;
+        private ArrayList<TLRPC.Dialog> dialogs = new ArrayList<>();
+        private LongSparseArray<TLRPC.Dialog> dialogsMap = new LongSparseArray<>();
+
+        public UserAdapter(Context context, int maxUsers) {
+            super(context, 0, new ArrayList<TLRPC.Dialog>());  // Initialize with an empty list
+            fetchDialogs();
+            this.context = context;
+            this.maxUsers = maxUsers;
+        }
+
+        // public UserAdapter(Context context, int maxUsers) {
+        //     super(context, 0, fetchDialogs());
+        //     this.context = context;
+        //     this.maxUsers = maxUsers;
+        // }
+    
+        
+        // @Override
+        // public int getItemCount() {
+        //     int count = dialogs.size();
+        //     if (count != 0) {
+        //         count++;
+        //     }
+        //     return count;
+        // }
+
+        public TLRPC.Dialog getItem(int position) {
+            Log.d("shareuUser", "count" + position);
+            position--;
+            if (position < 0 || position >= dialogs.size()) {
+                return null;
+            }
+            return dialogs.get(position);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            Log.d("shareUser", position + ",");
+
+            // Create a simple layout with ImageView and TextView for each user
+            LinearLayout layout = new LinearLayout(getContext());
+            layout.setOrientation(LinearLayout.VERTICAL);
+
+            ImageView imageView = new ImageView(getContext());
+            TextView textView = new TextView(getContext());
+            imageView.setBackgroundColor(Color.BLACK);
+            // Set the text and load the image
+            TLRPC.Dialog user = getItem(position);
+            textView.setText("Hello" + user.id);
+
+
+            int imageSize = 50;
+            imageView.setLayoutParams(new LinearLayout.LayoutParams(imageSize, imageSize));
+            textView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+            textView.setTranslationY(-20);
+            // Add views to layout
+            layout.addView(textView);
+            layout.addView(imageView);
+
+            return layout;
+        }
+
+        public void fetchDialogs() {
+            dialogs.clear();
+            dialogsMap.clear();
+            final boolean includeStory = false;
+            //  TODO MessageObject messageObject = messages.get(i);             final boolean includeStory = getMessagesController().storiesEnabled() && StoryEntry.canRepostMessage(messageObject);
+
+            long selfUserId = UserConfig.getInstance(currentAccount).clientUserId;
+            if (includeStory) {
+                MyStoryDialog d = new MyStoryDialog();
+                dialogs.add(d);
+                dialogsMap.put(d.id, d);
+            }
+            if (!MessagesController.getInstance(currentAccount).dialogsForward.isEmpty()) {
+                TLRPC.Dialog dialog = MessagesController.getInstance(currentAccount).dialogsForward.get(0);
+                dialogs.add(dialog);
+                dialogsMap.put(dialog.id, dialog);
+            }
+            ArrayList<TLRPC.Dialog> archivedDialogs = new ArrayList<>();
+            ArrayList<TLRPC.Dialog> allDialogs = MessagesController.getInstance(currentAccount).getAllDialogs();
+            for (int a = 0; a < allDialogs.size() && a < 5; a++) {
+                TLRPC.Dialog dialog = allDialogs.get(a);
+                if (!(dialog instanceof TLRPC.TL_dialog)) {
+                    continue;
+                }
+                if (dialog.id == selfUserId) {
+                    continue;
+                }
+                if (!DialogObject.isEncryptedDialog(dialog.id)) {
+                    if (DialogObject.isUserDialog(dialog.id)) {
+                        if (dialog.folder_id == 1) {
+                            archivedDialogs.add(dialog);
+                        } else {
+                            dialogs.add(dialog);
+                        }
+                        dialogsMap.put(dialog.id, dialog);
+                    } else {
+                        TLRPC.Chat chat = MessagesController.getInstance(currentAccount).getChat(-dialog.id);
+                        if (!(chat == null || ChatObject.isNotInChat(chat) || chat.gigagroup && !ChatObject.hasAdminRights(chat) || ChatObject.isChannel(chat) && !chat.creator && (chat.admin_rights == null || !chat.admin_rights.post_messages) && !chat.megagroup)) {
+                            if (dialog.folder_id == 1) {
+                                archivedDialogs.add(dialog);
+                            } else {
+                                dialogs.add(dialog);
+                            }
+                            dialogsMap.put(dialog.id, dialog);
+                        }
+                    }
+                }
+            }
+
+            dialogs.addAll(archivedDialogs);
+            Log.d("shareUser", "size" + dialogs.size());
+            Log.d("shareUser", "size" + allDialogs.size());
+            // if (parentFragment != null) {
+                // switch (false) {
+                //     case ChatActivity.DEBUG_SHARE_ALERT_MODE_LESS:
+                //         List<TLRPC.Dialog> sublist = new ArrayList<>(dialogs.subList(0, Math.min(4, dialogs.size())));
+                //         dialogs.clear();
+                //         dialogs.addAll(sublist);
+                //         break;
+                //     case ChatActivity.DEBUG_SHARE_ALERT_MODE_MORE:
+                //         while (!dialogs.isEmpty() && dialogs.size() < 80) {
+                //             dialogs.add(dialogs.get(dialogs.size() - 1));
+                //         }
+                //         break;
+                // }
+            // }
+            notifyDataSetChanged();
+        }
+
+
+    }
+
+   
+    private class ShareListUserAdapter extends RecyclerListView.SelectionAdapter {
+
+        private class MyStoryDialog extends TLRPC.Dialog {
+            { id = Long.MAX_VALUE; }
+        }
+
+        private Context context;
+        private int maxUsers;
+        private int currentCount;
+        private ArrayList<TLRPC.Dialog> dialogs = new ArrayList<>();
+        private LongSparseArray<TLRPC.Dialog> dialogsMap = new LongSparseArray<>();
+
+        public ShareListUserAdapter(Context context) {
+            this(context, 1000);
+        }
+
+        public ShareListUserAdapter(Context context, int maxUsers) {
+            this.context = context;
+            this.maxUsers = maxUsers;
+//            fetchDialogs();
+        }
+
+       
+
+        @Override
+        public int getItemCount() {
+            int count = dialogs.size();
+            Log.d("shareuUser", "count" + count);
+            if (count != 0) {
+                count++;
+            }
+            return count;
+        }
+
+        public TLRPC.Dialog getItem(int position) {
+            position--;
+            if (position < 0 || position >= dialogs.size()) {
+                return null;
+            }
+            return dialogs.get(position);
+        }
+
+        @Override
+        public boolean isEnabled(RecyclerView.ViewHolder holder) {
+            if (holder.getItemViewType() == 1) {
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            boolean darkTheme = themeDelegate.isDark;
+            View view;
+            switch (viewType) {
+                case 0: {
+                    view = new ShareDialogCell(context, darkTheme ? ShareDialogCell.TYPE_CALL : ShareDialogCell.TYPE_SHARE, themeDelegate) {
+                        @Override
+                        protected String repostToCustomName() {
+                            if (false) {
+                                return LocaleController.getString(R.string.RepostToStory);
+                            }
+                            return super.repostToCustomName();
+                        }
+                    };
+                    view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, dp(100)));
+                    break;
+                }
+                case 1:
+                default: {
+                    view = new View(context);
+                    view.setLayoutParams(new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT, dp(56)));
+                    break;
+                }
+            }
+            return new RecyclerListView.Holder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            if (holder.getItemViewType() == 0) {
+                ShareDialogCell cell = (ShareDialogCell) holder.itemView;
+                TLRPC.Dialog dialog = getItem(position);
+                if (dialog == null) return;
+//                cell.setTopic(selectedDialogTopics.get(dialog), false);
+                cell.setDialog(dialog.id, false, null);
+            }
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            if (position == 0) {
+                return 1;
+            }
+            return 0;
+        }
+    }
     private class RecyclerListViewInternal extends RecyclerListView implements StoriesListPlaceProvider.ClippedView {
         public RecyclerListViewInternal(Context context, ThemeDelegate themeDelegate) {
             super(context, themeDelegate);

@@ -1262,6 +1262,14 @@ public final class BulletinFactory {
     }
 
     @CheckResult
+    public static Bulletin createStreamNotifiedBulletin(BaseFragment fragment, Theme.ResourcesProvider resourcesProvider) {
+        final Bulletin.LottieLayout layout = new Bulletin.LottieLayout(fragment.getParentActivity(), resourcesProvider);
+        layout.setAnimation(R.raw.silent_unmute , 24, 24);
+        layout.textView.setText(LocaleController.getString(R.string.StreamSubscribeFullText));
+        return Bulletin.make(fragment, layout, 5000);
+    }
+
+    @CheckResult
     private static Bulletin createPinMessageBulletin(BaseFragment fragment, boolean pinned, Runnable undoAction, Runnable delayedAction, Theme.ResourcesProvider resourcesProvider) {
         final Bulletin.LottieLayout layout = new Bulletin.LottieLayout(fragment.getParentActivity(), resourcesProvider);
         layout.setAnimation(pinned ? R.raw.ic_pin : R.raw.ic_unpin, 28, 28, "Pin", "Line");

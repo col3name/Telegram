@@ -384,7 +384,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
             searchEditText.setLines(1);
             searchEditText.setSingleLine(true);
             searchEditText.setImeOptions(EditorInfo.IME_ACTION_SEARCH | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-            searchEditText.setHint(LocaleController.getString(R.string.ShareSendTo));
+            searchEditText.setHint(LocaleController.getString(R.string.ShareSendTo) + "Share send to");
             searchEditText.setCursorColor(getThemedColor(darkTheme ? Theme.key_voipgroup_searchText : Theme.key_featuredStickers_addedIcon));
             searchEditText.setCursorSize(dp(20));
             searchEditText.setCursorWidth(1.5f);
@@ -1574,7 +1574,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
         });
         MediaDataController.getInstance(currentAccount).loadHints(true);
 
-        AndroidUtilities.updateViewVisibilityAnimated(gridView, true, 1f, false);
+//        AndroidUtilities.updateViewVisibilityAnimated(gridView, true, 1f, false);
         AndroidUtilities.updateViewVisibilityAnimated(searchGridView, false, 1f, false);
     }
 
@@ -2428,12 +2428,18 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
         }
 
         private Context context;
+        private int maxUsers;
         private int currentCount;
         private ArrayList<TLRPC.Dialog> dialogs = new ArrayList<>();
         private LongSparseArray<TLRPC.Dialog> dialogsMap = new LongSparseArray<>();
 
         public ShareDialogsAdapter(Context context) {
+            this(context, 1000);
+        }
+
+        public ShareDialogsAdapter(Context context, int maxUsers) {
             this.context = context;
+            this.maxUsers = maxUsers;
             fetchDialogs();
         }
 
@@ -2453,7 +2459,8 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
             }
             ArrayList<TLRPC.Dialog> archivedDialogs = new ArrayList<>();
             ArrayList<TLRPC.Dialog> allDialogs = MessagesController.getInstance(currentAccount).getAllDialogs();
-            for (int a = 0; a < allDialogs.size(); a++) {
+
+            for (int a = 0; a < allDialogs.size() && a < maxUsers; a++) {
                 TLRPC.Dialog dialog = allDialogs.get(a);
                 if (!(dialog instanceof TLRPC.TL_dialog)) {
                     continue;
@@ -2482,6 +2489,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
                     }
                 }
             }
+
             dialogs.addAll(archivedDialogs);
             if (parentFragment != null) {
                 switch (parentFragment.shareAlertDebugMode) {

@@ -34,6 +34,8 @@ import java.util.ArrayList;
 
 public class PermanentLinkBottomSheet extends BottomSheet {
 
+    private final TextView refreshText;
+    private final TextView tooltip;
     private final TextView titleView;
     private final TextView subtitle;
     private final TextView manage;
@@ -77,6 +79,25 @@ public class PermanentLinkBottomSheet extends BottomSheet {
         linkActionView.hideRevokeOption(true);
         linkActionView.setDelegate(() -> generateLink(true));
 
+        refreshText = new TextView(context);
+        refreshText.setText("Обновить");
+        refreshText.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+        refreshText.setGravity(Gravity.CENTER_HORIZONTAL);
+        refreshText.setTextColor(Theme.getColor(Theme.key_windowBackgroundWhiteBlackText));
+        LinearLayout.LayoutParams refreshTextParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        refreshTextParams.setMargins(0, 0, 0, 10);
+        refreshText.setLayoutParams(refreshTextParams);
+
+        tooltip = new TextView(context);
+        tooltip.setText(LocaleController.getString(R.string.BotStartTooltip));
+        tooltip.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        tooltip.setGravity(Gravity.CENTER_HORIZONTAL);
+        tooltip.setTextColor(Theme.getColor(Theme.key_dialogTextBlack));
+        tooltip.setLineSpacing(tooltip.getLineSpacingExtra(), tooltip.getLineSpacingMultiplier() * 1.1f);
+
         titleView = new TextView(context);
         titleView.setText(LocaleController.getString(R.string.InviteLink));
         titleView.setTypeface(AndroidUtilities.bold());
@@ -112,7 +133,14 @@ public class PermanentLinkBottomSheet extends BottomSheet {
 
         linearLayout.addView(imageView, LayoutHelper.createLinear(90, 90, Gravity.CENTER_HORIZONTAL, 0, 33, 0, 0));
         linearLayout.addView(titleView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 60, 10, 60, 0));
+        linearLayout.addView(tooltip, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 60, 10, 60, 0));
         linearLayout.addView(subtitle, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 28, 7, 28, 2));
+        linearLayout.addView(refreshText, LayoutHelper.createLinear(
+                LayoutHelper.MATCH_PARENT,
+                LayoutHelper.WRAP_CONTENT,
+                Gravity.CENTER_HORIZONTAL,
+                0, 0, 0, 10
+        ));
         linearLayout.addView(linkActionView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
         linearLayout.addView(manage, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, Gravity.CENTER_HORIZONTAL, 14, -2, 14, 6));
 

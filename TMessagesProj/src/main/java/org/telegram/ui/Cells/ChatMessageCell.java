@@ -485,6 +485,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             return false;
         }
 
+        default void hideSideButton() {
+        }
+
+        default void didLongPressSideButton(ChatMessageCell cell, TLRPC.User user, float touchX, float touchY) {
+        }
+
         default void didPressHiddenForward(ChatMessageCell cell) {
         }
 
@@ -3219,7 +3225,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             if (commentButtonPressed) {
                 if (delegate != null) {
                     if (isRepliesChat) {
-                        delegate.didPressSideButton(this);
+                         delegate.didPressSideButton(this);
                     } else {
                         delegate.didPressCommentButton(this);
                     }
@@ -3887,6 +3893,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (delegate != null) {
+            delegate.hideSideButton();
+        }
         if (currentMessageObject == null || delegate != null && !delegate.canPerformActions() || animationRunning) {
             if (currentMessageObject != null && currentMessageObject.preview) {
                 return checkTextSelection(event);
@@ -9919,6 +9928,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
 
     @Override
     protected boolean onLongPress() {
+        if (sideButtonPressed && delegate != null) {
+            // delegate.didLongPressSideButton(this); 
+            delegate.didLongPressSideButton(this, currentUser, lastTouchX, lastTouchY);
+            sideButtonPressed = false;
+            return true;          
+        }
         if (isRoundVideo && isPlayingRound && MediaController.getInstance().isPlayingMessage(currentMessageObject)) {
             float touchRadius = (lastTouchX - photoImage.getCenterX()) * (lastTouchX - photoImage.getCenterX()) + (lastTouchY - photoImage.getCenterY()) * (lastTouchY - photoImage.getCenterY());
             float r1 = (photoImage.getImageWidth() / 2f) * (photoImage.getImageWidth() / 2f);
@@ -10111,11 +10126,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     handled = delegate.didLongPressChannelAvatar(this, currentChat, id, lastTouchX, lastTouchY);
                 }
             }
-
+           
             if (!handled) {
                 delegate.didLongPress(this, lastTouchX, lastTouchY);
             }
         }
+       
         return true;
     }
 
@@ -18372,7 +18388,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
             sideButtonVisible = true;
             if (drawSideButton == 3) {
                 if (!(enterTransitionInProgress && !currentMessageObject.isVoice())) {
-                    drawCommentButton(canvas, 1f);
+                    // drawCommentButton(canvas, 1f);
                 }
             } else {
                 if (SizeNotifierFrameLayout.drawingBlur) {
@@ -23666,7 +23682,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                     } else if (virtualViewId == COMMENT) {
                         if (delegate != null) {
                             if (isRepliesChat) {
-                                delegate.didPressSideButton(ChatMessageCell.this);
+                               delegate.didPressSideButton(ChatMessageCell.this);
                             } else {
                                 delegate.didPressCommentButton(ChatMessageCell.this);
                             }

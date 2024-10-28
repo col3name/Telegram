@@ -130,7 +130,9 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
     private FrameLayout silentButton;
     private ImageView silentButtonImage;
     private FragmentContextView additionalContextView;
+    private TextView subscribeStreamButton;
     private TextView joinButton;
+    private TextView enableNotificationVoiCallButton;
     private int joinButtonWidth;
     private CellFlickerDrawable joinButtonFlicker;
 
@@ -177,8 +179,21 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
             } else {
                 str = AndroidUtilities.formatFullDuration(call.call.schedule_date - currentTime);
             }
-            int width = (int) Math.ceil(gradientTextPaint.measureText(str));
-            timeLayout = new StaticLayout(str, gradientTextPaint, width, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
+
+            String daysText = str + "";
+
+            if (!call.call.schedule_start_subscribed) {
+                subscribeStreamButton.setVisibility(VISIBLE);
+                timeLayout = null;
+                AndroidUtilities.runOnUIThread(updateScheduleTimeRunnable, 1000);
+                frameLayout.invalidate();
+                return;
+            } else {
+                subscribeStreamButton.setVisibility(GONE);
+            }
+
+            int width = (int) Math.ceil(gradientTextPaint.measureText(daysText));
+            timeLayout = new StaticLayout(daysText, gradientTextPaint, width, Layout.Alignment.ALIGN_NORMAL, 1.0f, 0.0f, false);
             AndroidUtilities.runOnUIThread(updateScheduleTimeRunnable, 1000);
             frameLayout.invalidate();
         }
@@ -408,11 +423,39 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 return textView;
             }
         };
+
+        subscribeStreamButton = new TextView(context);
+        subscribeStreamButton.setText(LocaleController.getString(R.string.StreamSubscribeText));
+        subscribeStreamButton.setTextColor(getThemedColor(Theme.key_featuredStickers_buttonText));
+        subscribeStreamButton.setBackground(Theme.createSimpleSelectorRoundRectDrawable(AndroidUtilities.dp(16), Color.rgb(131,130,247), getThemedColor(Theme.key_featuredStickers_addButtonPressed)));
+        subscribeStreamButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
+        subscribeStreamButton.setTypeface(AndroidUtilities.bold());
+        subscribeStreamButton.setGravity(Gravity.CENTER);
+        subscribeStreamButton.setPadding(AndroidUtilities.dp(14), 0, AndroidUtilities.dp(14), 0);
+        addView(subscribeStreamButton, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, 28, Gravity.TOP | Gravity.RIGHT, 0, 10, 14, 0));
+        subscribeStreamButton.setVisibility(GONE);
+        subscribeStreamButton.setOnClickListener(v -> {
+            ChatObject.Call call = chatActivity.getGroupCall();
+            TLRPC.TL_phone_toggleGroupCallStartSubscription req = new TLRPC.TL_phone_toggleGroupCallStartSubscription();
+            req.call = call.getInputGroupCall();
+            call.call.schedule_start_subscribed = true;
+            req.subscribed = true;
+            fragment.getConnectionsManager().sendRequest(req, (response, error) -> {
+                if (response != null) {
+                    post(() -> {
+                        chatActivity.notifyStream();
+                    });
+                }
+            });
+        });
+
         addView(subtitleTextView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36, Gravity.LEFT | Gravity.TOP, 35, 10, 36, 0));
 
         joinButtonFlicker = new CellFlickerDrawable();
         joinButtonFlicker.setProgress(1);
         joinButtonFlicker.repeatEnabled = false;
+//        enableNotificationVoiCallButton = new TextView() {
+//        };
         joinButton = new TextView(context) {
             @Override
             public void draw(Canvas canvas) {
@@ -457,7 +500,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                 }
             }
         };
-        joinButton.setText(LocaleController.getString(R.string.VoipChatJoin));
+        joinButton.setText(LocaleController.getString(R.string.VoipChatJoin) + "joinButton2");
         joinButton.setTextColor(getThemedColor(Theme.key_featuredStickers_buttonText));
         joinButton.setBackground(Theme.createSimpleSelectorRoundRectDrawable(AndroidUtilities.dp(16), getThemedColor(Theme.key_featuredStickers_addButton), getThemedColor(Theme.key_featuredStickers_addButtonPressed)));
         joinButton.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
@@ -670,6 +713,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
         });
 
         setOnClickListener(v -> {
+//            return
+            System.out.println(currentStyle);
             if (currentStyle == STYLE_AUDIO_PLAYER) {
                 MessageObject messageObject = MediaController.getInstance().getPlayingMessageObject();
                 if (fragment != null && messageObject != null) {
@@ -1045,11 +1090,19 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
         frameLayout.setWillNotDraw(currentStyle != STYLE_INACTIVE_GROUP_CALL);
         if (style != STYLE_INACTIVE_GROUP_CALL) {
             timeLayout = null;
+
+            if (subscribeStreamButton != null) {
+                subscribeStreamButton.setVisibility(GONE);
+            }
         }
+
 
         if (avatars != null) {
             avatars.setStyle(currentStyle);
             avatars.setLayoutParams(LayoutHelper.createFrame(108, getStyleHeight(), Gravity.LEFT | Gravity.TOP));
+            if (subscribeStreamButton != null) {
+                subscribeStreamButton.setVisibility(GONE);
+            }
         }
         frameLayout.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, getStyleHeight(), Gravity.TOP | Gravity.LEFT, 0, 0, 0, 0));
         shadow.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 2, Gravity.LEFT | Gravity.TOP, 0, getStyleHeight(), 0, 0));
@@ -1268,6 +1321,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
 
     @Override
     protected void onAttachedToWindow() {
+
         super.onAttachedToWindow();
         if (isLocation) {
             NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.liveLocationsChanged);
@@ -1965,6 +2019,8 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
         MessageObject messageObject = MediaController.getInstance().getPlayingMessageObject();
         return messageObject != null && messageObject.isVoice();
     }
+
+//    private getCallAvailableAndGroupActive() ={ }
 
     public void checkCall(boolean create) {
         VoIPService voIPService = VoIPService.getSharedInstance();

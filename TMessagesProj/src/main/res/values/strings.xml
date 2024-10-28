@@ -3448,6 +3448,8 @@
     <string name="BotStatusCantRead">has no access to messages</string>
     <string name="BotInfoTitle">What can this bot do?</string>
     <string name="BotStartTooltip">Tap her to use this bot</string>
+    <string name="StreamSubscribeText">Notify me</string>
+    <string name="StreamSubscribeFullText">You will be notified when the live stream</string>
     <string name="BotStart">Start Bot</string>
     <string name="BotUnblock">RESTART</string>
     <string name="BotRestart">Restart bot</string>
