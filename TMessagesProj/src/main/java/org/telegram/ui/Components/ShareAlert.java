@@ -2460,7 +2460,7 @@ public class ShareAlert extends BottomSheet implements NotificationCenter.Notifi
             ArrayList<TLRPC.Dialog> archivedDialogs = new ArrayList<>();
             ArrayList<TLRPC.Dialog> allDialogs = MessagesController.getInstance(currentAccount).getAllDialogs();
 
-            for (int a = 0; a < allDialogs.size() && a < maxUsers; a++) {
+            for (int a = 0; a < allDialogs.size(); a++) {
                 TLRPC.Dialog dialog = allDialogs.get(a);
                 if (!(dialog instanceof TLRPC.TL_dialog)) {
                     continue;
