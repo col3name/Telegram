@@ -5156,7 +5156,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
             final TLRPC.User currentUser = getUserConfig().getCurrentUser();
             avatarContainer = new ChatAvatarContainer(actionBar.getContext(), null, false);
             avatarContainer.setTitle(UserObject.getUserName(currentUser));
-            avatarContainer.setSubtitle(LocaleController.formatUserStatus(currentAccount, currentUser));
+            avatarContainer.setSubtitle(LocaleController.formatUserStatus(currentAccount, currentUser) + "sf10");
             avatarContainer.setUserAvatar(currentUser, true);
             avatarContainer.setOccupyStatusBar(false);
             avatarContainer.setLeftPadding(dp(10));

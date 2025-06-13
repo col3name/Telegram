@@ -469,7 +469,7 @@ public class GroupCreateUserCell extends FrameLayout {
                         } else {
                             statusTextView.setTag(Theme.key_windowBackgroundWhiteGrayText);
                             statusTextView.setTextColor(Theme.getColor(forceDarkTheme ? Theme.key_voipgroup_lastSeenText : Theme.key_windowBackgroundWhiteGrayText, resourcesProvider));
-                            statusTextView.setText(LocaleController.formatUserStatus(currentAccount, currentUser));
+                            statusTextView.setText(LocaleController.formatUserStatus(currentAccount, currentUser) + "sf7");
                         }
                     }
                     statusTextView.setEmojiColor(statusTextView.getTextColor());

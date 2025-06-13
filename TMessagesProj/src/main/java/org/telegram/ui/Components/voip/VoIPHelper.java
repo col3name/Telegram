@@ -47,6 +47,7 @@ import org.telegram.ui.AccountFrozenAlert;
 import org.telegram.ui.ActionBar.AlertDialog;
 import org.telegram.ui.ActionBar.BaseFragment;
 import org.telegram.ui.ActionBar.Theme;
+import org.telegram.ui.CallLogActivity;
 import org.telegram.ui.Cells.CheckBoxCell;
 import org.telegram.ui.Cells.TextCheckCell;
 import org.telegram.ui.Components.AlertsCreator;
@@ -79,6 +80,13 @@ public class VoIPHelper {
 			return;
 		}
 		if (userFull != null && userFull.phone_calls_private) {
+
+
+//			try {
+//				throw new Exception("df");
+//			} catch (Exception exception) {
+//				exception.printStackTrace();
+//			}
 			new AlertDialog.Builder(activity)
 					.setTitle(LocaleController.getString(R.string.VoipFailed))
 					.setMessage(AndroidUtilities.replaceTags(LocaleController.formatString("CallNotAvailable", R.string.CallNotAvailable,

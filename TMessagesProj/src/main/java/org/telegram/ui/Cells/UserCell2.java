@@ -274,7 +274,7 @@ public class UserCell2 extends FrameLayout {
                     statusTextView.setText(LocaleController.getString(R.string.Online));
                 } else {
                     statusTextView.setTextColor(statusColor);
-                    statusTextView.setText(LocaleController.formatUserStatus(currentAccount, currentUser));
+                    statusTextView.setText(LocaleController.formatUserStatus(currentAccount, currentUser) + "sf3");
                 }
             }
             avatarImageView.setForUserOrChat(currentUser, avatarDrawable);

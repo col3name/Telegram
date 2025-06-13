@@ -288,6 +288,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -3720,6 +3721,14 @@ public class ChatActivity extends BaseFragment implements NotificationCenter.Not
                     }
                 } else if (id == call || id == video_call) {
                     if (currentUser != null && getParentActivity() != null) {
+                        if (userInfo != null && userInfo.phone_calls_private) {
+                            TLRPC.User user = userInfo != null ? userInfo.user : getMessagesController().getUser(userInfo.id);
+                            Consumer<String> onSend = (String link) -> {
+                                getSendMessagesHelper().sendMessage(SendMessagesHelper.SendMessageParams.of(link, user.id));
+                            };
+                            CallLogActivity.createCallLinkFromProfile(context, currentAccount, resourceProvider, userInfo, user, onSend);
+                            return;
+                        }
                         VoIPHelper.startCall(currentUser, id == video_call, userInfo != null && userInfo.video_calls_available, getParentActivity(), getMessagesController().getUserFull(currentUser.id), getAccountInstance());
                     }
                 } else if (id == text_bold) {

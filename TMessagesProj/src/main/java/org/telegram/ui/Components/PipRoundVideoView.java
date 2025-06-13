@@ -337,6 +337,7 @@ public class PipRoundVideoView implements NotificationCenter.NotificationCenterD
     }
 
     public void close(boolean animated) {
+        // #vidoePip
         if (animated) {
             if (textureView != null && textureView.getParent() != null) {
                 if (textureView.getWidth() > 0 && textureView.getHeight() > 0) {

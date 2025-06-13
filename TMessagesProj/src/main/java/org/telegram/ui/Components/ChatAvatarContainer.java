@@ -501,6 +501,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         return true;
     }
 
+   
     public void openProfile(boolean byAvatar) {
         openProfile(byAvatar, true, false);
     }
@@ -601,6 +602,102 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
         }
     }
 
+    public void openProfile(boolean byAvatar, boolean fromChatAnimation, boolean removeLast, boolean startVideoCall) {
+        // if (byAvatar && (AndroidUtilities.isTablet() || AndroidUtilities.displaySize.x > AndroidUtilities.displaySize.y || !avatarImageView.getImageReceiver().hasNotThumb())) {
+        //     byAvatar = false;
+        // }
+        // TLRPC.User user = parentFragment.getCurrentUser();
+        // TLRPC.Chat chat = parentFragment.getCurrentChat();
+        // final boolean monoforum = chat != null && chat.monoforum;
+        // if (chat != null && chat.monoforum) {
+        //     TLRPC.Chat channel = parentFragment.getMessagesController().getChat(chat.linked_monoforum_id);
+        //     if (channel == null) return;
+        //     chat = channel;
+        //     if (parentFragment.getSendMonoForumPeerId() != 0) {
+        //         TLRPC.User fromUser = parentFragment.getMessagesController().getUser(parentFragment.getSendMonoForumPeerId());
+        //         if (fromUser != null) {
+        //             user = fromUser;
+        //             chat = null;
+        //         }
+        //     }
+        // }
+        // ImageReceiver imageReceiver = avatarImageView.getImageReceiver();
+        // String key = imageReceiver.getImageKey();
+        // ImageLoader imageLoader = ImageLoader.getInstance();
+        // if (key != null && !imageLoader.isInMemCache(key, false)) {
+        //     Drawable drawable = imageReceiver.getDrawable();
+        //     if (drawable instanceof BitmapDrawable && !(drawable instanceof AnimatedFileDrawable)) {
+        //         imageLoader.putImageToCache((BitmapDrawable) drawable, key, false);
+        //     }
+        // }
+
+        // if (parentFragment.isComments) {
+        //     if (chat == null) return;
+        //     parentFragment.presentFragment(ProfileActivity.of(-chat.id), removeLast);
+        //     return;
+        // }
+
+        // if (user != null) {
+        //     if (user.id == UserObject.VERIFY) {
+        //         return;
+        //     }
+        //     Bundle args = new Bundle();
+        //     args.putBoolean("startVideoCall", startVideoCall);
+        //     if (UserObject.isUserSelf(user)) {
+        //         if (!sharedMediaPreloader.hasSharedMedia()) {
+        //             return;
+        //         }
+        //         args.putLong("dialog_id", parentFragment.getDialogId());
+        //         if (parentFragment.getChatMode() == ChatActivity.MODE_SAVED) {
+        //             args.putLong("topic_id", parentFragment.getSavedDialogId());
+        //         }
+        //         MediaActivity fragment = new MediaActivity(args, sharedMediaPreloader);
+        //         fragment.setChatInfo(parentFragment.getCurrentChatInfo());
+        //         parentFragment.presentFragment(fragment, removeLast);
+        //     } else {
+        //         if (parentFragment.getChatMode() == ChatActivity.MODE_SAVED) {
+        //             long dialogId = parentFragment.getSavedDialogId();
+        //             args.putBoolean("saved", true);
+        //             if (dialogId >= 0) {
+        //                 args.putLong("user_id", dialogId);
+        //             } else {
+        //                 args.putLong("chat_id", -dialogId);
+        //             }
+        //         } else {
+        //             args.putLong("user_id", user.id);
+        //             if (timeItem != null && !monoforum) {
+        //                 args.putLong("dialog_id", parentFragment.getDialogId());
+        //             }
+        //         }
+        //         args.putBoolean("reportSpam", parentFragment.hasReportSpam());
+        //         args.putInt("actionBarColor", getThemedColor(Theme.key_actionBarDefault));
+        //         ProfileActivity fragment = new ProfileActivity(args, sharedMediaPreloader);
+        //         if (!monoforum) {
+        //             fragment.setUserInfo(parentFragment.getCurrentUserInfo(), parentFragment.profileChannelMessageFetcher, parentFragment.birthdayAssetsFetcher);
+        //         }
+        //         if (fromChatAnimation) {
+        //             fragment.setPlayProfileAnimation(byAvatar ? 2 : 1);
+        //         }
+        //         parentFragment.presentFragment(fragment, removeLast);
+        //     }
+        // } else if (chat != null) {
+        //     Bundle args = new Bundle();
+        //     args.putLong("chat_id", chat.id);
+        //     if (parentFragment.getChatMode() == ChatActivity.MODE_SAVED) {
+        //         args.putLong("topic_id", parentFragment.getSavedDialogId());
+        //     } else if (parentFragment.isTopic) {
+        //         args.putLong("topic_id", parentFragment.getThreadMessage().getId());
+        //     }
+        //     ProfileActivity fragment = new ProfileActivity(args, sharedMediaPreloader);
+        //     if (!monoforum) {
+        //         fragment.setChatInfo(parentFragment.getCurrentChatInfo());
+        //     }
+        //     if (fromChatAnimation) {
+        //         fragment.setPlayProfileAnimation(byAvatar ? 2 : 1);
+        //     }
+        //     parentFragment.presentFragment(fragment, removeLast);
+        // }
+    }
     public void setOccupyStatusBar(boolean value) {
         occupyStatusBar = value;
     }
@@ -1109,7 +1206,7 @@ public class ChatAvatarContainer extends FrameLayout implements NotificationCent
                     newStatus = LocaleController.getString(R.string.Bot);
                 } else {
                     isOnline[0] = false;
-                    newStatus = LocaleController.formatUserStatus(currentAccount, user, isOnline, allowShorterStatus ? statusMadeShorter : null);
+                    newStatus = LocaleController.formatUserStatus(currentAccount, user, isOnline, allowShorterStatus ? statusMadeShorter : null) + "sf2";
                     useOnlineColor = isOnline[0];
                 }
                 newSubtitle = newStatus;

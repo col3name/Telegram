@@ -148,6 +148,10 @@ public class TextDetailCell extends FrameLayout {
     }
 
     public void setTextAndValue(CharSequence text, CharSequence value, boolean divider) {
+        setTextAndValue(text, value, divider, false);
+    }
+
+    public void setTextAndValue(CharSequence text, CharSequence value, boolean divider, boolean parseLinks) {
         textView.setText(text);
         valueTextView.setText(value);
         needDivider = divider;

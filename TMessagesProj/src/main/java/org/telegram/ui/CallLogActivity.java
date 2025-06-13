@@ -29,7 +29,6 @@ import android.text.Layout;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.text.TextUtils;
 import android.text.style.ImageSpan;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -42,22 +41,24 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.telegram.messenger.AndroidUtilities;
 import org.telegram.messenger.ChatObject;
+import org.telegram.messenger.ContactsController;
 import org.telegram.messenger.DialogObject;
-import org.telegram.messenger.FileLog;
 import org.telegram.messenger.LocaleController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.NotificationCenter;
 import org.telegram.messenger.R;
 import org.telegram.messenger.UserConfig;
+import org.telegram.messenger.UserObject;
 import org.telegram.messenger.Utilities;
-import org.telegram.messenger.voip.ConferenceCall;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLRPC;
 import org.telegram.tgnet.tl.TL_phone;
+import org.telegram.tgnet.tl.TL_stats;
 import org.telegram.ui.ActionBar.ActionBar;
 import org.telegram.ui.ActionBar.ActionBarMenu;
 import org.telegram.ui.ActionBar.ActionBarMenuItem;
@@ -75,9 +76,7 @@ import org.telegram.ui.Cells.ProfileSearchCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
 import org.telegram.ui.Cells.TextCell;
 import org.telegram.ui.Cells.TextInfoPrivacyCell;
-import org.telegram.ui.Components.AlertsCreator;
 import org.telegram.ui.Components.AvatarsImageView;
-import org.telegram.ui.Components.BackupImageView;
 import org.telegram.ui.Components.Bulletin;
 import org.telegram.ui.Components.BulletinFactory;
 import org.telegram.ui.Components.CheckBox2;
@@ -96,7 +95,6 @@ import org.telegram.ui.Components.RecyclerListView;
 import org.telegram.ui.Components.ScaleStateListAnimator;
 import org.telegram.ui.Components.ShareAlert;
 import org.telegram.ui.Components.TextHelper;
-import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.Components.voip.VoIPHelper;
 import org.telegram.ui.Stories.recorder.ButtonWithCounterView;
 import org.telegram.ui.Stories.recorder.HintView2;
@@ -105,7 +103,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import androidx.collection.LongSparseArray;
@@ -1957,5 +1960,182 @@ public class CallLogActivity extends BaseFragment implements NotificationCenter.
 				AndroidUtilities.runOnUIThread(done);
 			}
 		}));
+	}
+
+	public static void createCallLinkFromProfile(Context context, int currentAccount, Theme.ResourcesProvider resourceProvider, TLRPC.UserFull userFull, TLRPC.User user, Consumer<String> onSend) {
+		final AlertDialog progressDialog = new AlertDialog(context, AlertDialog.ALERT_TYPE_SPINNER);
+		progressDialog.showDelayed(500);
+
+		final TL_phone.createConferenceCall req = new TL_phone.createConferenceCall();
+		req.random_id = Utilities.random.nextInt();
+		ConnectionsManager.getInstance(currentAccount).sendRequest(req, (res, err) -> AndroidUtilities.runOnUIThread(() -> {
+			if (res instanceof TLRPC.Updates) {
+				TLRPC.Updates updates = (TLRPC.Updates) res;
+				MessagesController.getInstance(currentAccount).putUsers(updates.users, false);
+				MessagesController.getInstance(currentAccount).putChats(updates.chats, false);
+
+				TLRPC.GroupCall groupCall = null;
+				for (TLRPC.TL_updateGroupCall u : findUpdatesAndRemove(updates, TLRPC.TL_updateGroupCall.class)) {
+					groupCall = u.call;
+				}
+				progressDialog.dismiss();
+				if (groupCall != null) {
+					final TLRPC.TL_inputGroupCall inputGroupCall = new TLRPC.TL_inputGroupCall();
+					inputGroupCall.id = groupCall.id;
+					inputGroupCall.access_hash = groupCall.access_hash;
+					showCallLinkSheetInviteUser(context, currentAccount, inputGroupCall, groupCall.invite_link, resourceProvider, true, userFull, user, onSend);
+
+//					AndroidUtilities.runOnUIThread(done);
+				}
+			} else if (res instanceof TL_phone.groupCall) {
+				final TL_phone.groupCall r = (TL_phone.groupCall) res;
+				MessagesController.getInstance(currentAccount).putUsers(r.users, false);
+				MessagesController.getInstance(currentAccount).putChats(r.chats, false);
+
+				final TL_phone.exportGroupCallInvite req2 = new TL_phone.exportGroupCallInvite();
+				req2.call = new TLRPC.TL_inputGroupCall();
+				req2.call.id = r.call.id;
+				req2.call.access_hash = r.call.access_hash;
+				ConnectionsManager.getInstance(currentAccount).sendRequest(req2, (res2, err2) -> AndroidUtilities.runOnUIThread(() -> {
+					if (res2 instanceof TL_phone.exportedGroupCallInvite) {
+						progressDialog.dismiss();
+
+						final TL_phone.exportedGroupCallInvite r2 = (TL_phone.exportedGroupCallInvite) res2;
+						showCallLinkSheetInviteUser(context, currentAccount, req2.call, r2.link, resourceProvider, true, userFull, user, onSend);
+					} else {
+						progressDialog.dismiss();
+					}
+
+//					AndroidUtilities.runOnUIThread(done);
+				}));
+			} else {
+				progressDialog.dismiss();
+			}
+		}));
+	}
+
+
+	public static void showCallLinkSheetInviteUser(Context context, int currentAccount, TLRPC.InputGroupCall inputGroupCall, String link, Theme.ResourcesProvider resourcesProvider, boolean creator, TLRPC.UserFull userFull, TLRPC.User user, Consumer<String> onSend) {
+		final BottomSheet.Builder b = new BottomSheet.Builder(context, false, resourcesProvider, Theme.getColor(Theme.key_dialogBackground, resourcesProvider));
+
+		final String[] currentLink = new String[] { link };
+		final LinearLayout linearLayout = new LinearLayout(context);
+		linearLayout.setOrientation(LinearLayout.VERTICAL);
+		linearLayout.setPadding(0, 0, 0, dp(8));
+
+		final FrameLayout topView = new FrameLayout(context);
+		topView.setClipChildren(false);
+		topView.setClipToPadding(false);
+		linearLayout.addView(topView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 92, Gravity.CENTER, 0, 0, 0, 0));
+
+		final FrameLayout circle = new FrameLayout(context);
+		ImageView imageView = new ImageView(context);
+		imageView.setScaleType(ImageView.ScaleType.CENTER);
+		imageView.setImageResource(R.drawable.story_link);
+		imageView.setScaleX(2f);
+		imageView.setScaleY(2f);
+		circle.addView(imageView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT, Gravity.CENTER));
+		circle.setBackground(Theme.createCircleDrawable(dp(80), Theme.getColor(Theme.key_featuredStickers_addButton, resourcesProvider)));
+		topView.addView(circle, LayoutHelper.createFrame(80, 80, Gravity.CENTER_HORIZONTAL, 0, 12, 0, 0));
+
+		final ImageView optionsView = new ImageView(context);
+		optionsView.setScaleType(ImageView.ScaleType.CENTER);
+		optionsView.setImageResource(R.drawable.msg_close);
+		optionsView.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText, resourcesProvider), PorterDuff.Mode.SRC_IN));
+		optionsView.setBackground(Theme.createSelectorDrawable(Theme.getColor(Theme.key_listSelector, resourcesProvider)));
+		if (creator) {
+			topView.addView(optionsView, LayoutHelper.createFrame(56, 56, Gravity.RIGHT | Gravity.TOP, 0, 0, 0, 0));
+		}
+
+		LinkSpanDrawable.LinksTextView textView = TextHelper.makeLinkTextView(context, 20, Theme.key_windowBackgroundWhiteBlackText, true, resourcesProvider);
+		textView.setText(getString(R.string.GroupCallCreatedLinkTitle));
+		textView.setGravity(Gravity.CENTER);
+		linearLayout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 32, 16, 32, 8));
+
+		textView = TextHelper.makeLinkTextView(context, 14, Theme.key_windowBackgroundWhiteBlackText, false, resourcesProvider);
+		String firstName = user.first_name != null ? user.first_name : "";
+		String lastName = user.first_name != null ? user.last_name : "";
+		String s = ContactsController.formatName(firstName, lastName);
+
+		textView.setText(AndroidUtilities.replaceTags(LocaleController.formatString(R.string.InviteCallRestrictedUsersOne, s)));
+		textView.setGravity(Gravity.CENTER);
+		textView.setMaxWidth(HintView2.cutInFancyHalf(textView.getText(), textView.getPaint()));
+		linearLayout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER, 32, 0, 32, 18));
+
+		String formattedLink = link;
+		if (formattedLink.startsWith("https://"))
+			formattedLink = formattedLink.substring("https://".length());
+
+		LinearLayout buttonsLayout = new LinearLayout(context);
+		buttonsLayout.setOrientation(LinearLayout.HORIZONTAL);
+		linearLayout.addView(buttonsLayout, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, 16, 12, 16, 0));
+		ButtonWithCounterView sendInviteLinkButton = new ButtonWithCounterView(context, resourcesProvider);
+		sendInviteLinkButton.setText(getString(R.string.SendInviteLink), false);
+		buttonsLayout.addView(sendInviteLinkButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 1, Gravity.LEFT | Gravity.TOP, 0, 0, 6, 0));
+
+		final BottomSheet[] _sheet = new BottomSheet[1];
+
+		b.setCustomView(linearLayout);
+		BottomSheet sheet = _sheet[0] = b.show();
+
+		sendInviteLinkButton.setOnClickListener(v -> {
+			AndroidUtilities.addToClipboard(currentLink[0]);
+			onSend.accept(link);
+			sheet.cancel();
+		});
+		final Runnable revoke = () -> {
+			final TL_phone.toggleGroupCallSettings req = new TL_phone.toggleGroupCallSettings();
+			req.call = inputGroupCall;
+			req.reset_invite_hash = true;
+			ConnectionsManager.getInstance(currentAccount).sendRequest(req, (res, err) -> {
+				if (res instanceof TLRPC.Updates) {
+					MessagesController.getInstance(currentAccount).processUpdates((TLRPC.Updates) res, false);
+				}
+
+				final TL_phone.exportGroupCallInvite req2 = new TL_phone.exportGroupCallInvite();
+				req2.call = inputGroupCall;
+				ConnectionsManager.getInstance(currentAccount).sendRequest(req2, (res2, err2) -> AndroidUtilities.runOnUIThread(() -> {
+					if (res2 instanceof TL_phone.exportedGroupCallInvite) {
+						final TL_phone.exportedGroupCallInvite r = (TL_phone.exportedGroupCallInvite) res2;
+						final String newLink = r.link;
+
+						currentLink[0] = newLink;
+//						String formattedLink2 = newLink;
+//						if (formattedLink2.startsWith("https://"))
+//							formattedLink2 = formattedLink2.substring("https://".length());
+
+						ValueAnimator animator = ValueAnimator.ofFloat(0, 1).setDuration(220);
+						AtomicBoolean changed = new AtomicBoolean();
+						animator.addUpdateListener(animation -> {
+							float val = (float) animation.getAnimatedValue();
+
+							if (val >= 0.5f && !changed.get()) {
+								changed.set(true);
+							}
+						});
+						animator.addListener(new AnimatorListenerAdapter() {
+							@Override
+							public void onAnimationEnd(Animator animation) {
+								if (!changed.get()) {
+									changed.set(true);
+								}
+							}
+						});
+						animator.start();
+
+						BulletinFactory.of(sheet.topBulletinContainer, resourcesProvider)
+								.createSimpleBulletin(R.raw.linkbroken, getString(R.string.GroupCallCreatedLinkRevokedTitle), getString(R.string.GroupCallCreatedLinkRevokedText))
+								.show();
+					}
+				}));
+			});
+		};
+
+		if (creator) {
+			optionsView.setOnClickListener(v -> {
+				revoke.run();
+				sheet.cancel();
+			});
+		}
 	}
 }

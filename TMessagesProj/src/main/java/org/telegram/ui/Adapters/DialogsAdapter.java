@@ -856,7 +856,7 @@ public class DialogsAdapter extends RecyclerListView.SelectionAdapter implements
                                 if (user.bot) {
                                     subtitle = getString(R.string.Bot);
                                 } else {
-                                    subtitle = LocaleController.formatUserStatus(currentAccount, user);
+                                    subtitle = LocaleController.formatUserStatus(currentAccount, user) + "sf8";
                                 }
                             }
                         }

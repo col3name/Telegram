@@ -629,7 +629,7 @@ public class UserCell extends FrameLayout implements NotificationCenter.Notifica
                     statusTextView.setText(getString(R.string.Online));
                 } else {
                     statusTextView.setTextColor(statusColor);
-                    statusTextView.setText(LocaleController.formatUserStatus(currentAccount, currentUser));
+                    statusTextView.setText(LocaleController.formatUserStatus(currentAccount, currentUser) + "sf4");
                 }
             }
         }

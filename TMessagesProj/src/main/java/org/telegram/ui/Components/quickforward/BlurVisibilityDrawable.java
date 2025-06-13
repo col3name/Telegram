@@ -42,6 +42,7 @@ public class BlurVisibilityDrawable extends Drawable {
     }
 
     public void render (int width, int height, int blurRadius, float bitmapScale) {
+        // return;
         final int bitmapWidth = (int) ((width + blurRadius * 2) / bitmapScale);
         final int bitmapHeight = (int) ((height + blurRadius * 2) / bitmapScale);
 
@@ -106,12 +107,14 @@ public class BlurVisibilityDrawable extends Drawable {
         if (alpha > 0) {
             canvas.save();
             canvas.translate(left, top);
+            // drawRunnable.draw(canvas, alpha);
             drawRunnable.draw(canvas, alpha);
             canvas.restore();
         }
     }
 
     private void drawBlur (Canvas canvas, int alpha) {
+        // return
         if (alpha > 0 && bitmap != null) {
             emptyPaint.setAlpha(alpha);
             canvas.save();

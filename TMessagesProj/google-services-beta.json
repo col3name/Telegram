@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "496791188849",
+    "project_id": "tgmessages-8cd83",
+    "storage_bucket": "tgmessages-8cd83.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:496791188849:android:6cf5221e9538cfa90af2d0",
+        "android_client_info": {
+          "package_name": "org.telegram.messenger"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7SNaMhswJ4y6o9FjqEXh2S1WgNENmUsY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:496791188849:android:b3ca03c3abeada580af2d0",
+        "android_client_info": {
+          "package_name": "org.telegram.messenger.beta"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7SNaMhswJ4y6o9FjqEXh2S1WgNENmUsY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

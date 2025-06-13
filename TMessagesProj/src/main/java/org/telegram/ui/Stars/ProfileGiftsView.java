@@ -319,107 +319,115 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
     }
 
     public final AnimatedFloat animatedCount = new AnimatedFloat(this, 0, 320, CubicBezierInterpolator.EASE_OUT_QUINT);
+    private final int shift = dp(30);
+    private final int shift2 = dp(50);
+
+    private static final int[] anglesDeg = new int[]{
+        225, // left top
+        45,  // right bottom
+        135, // left bottom
+        315, // right top
+        180, // left middle
+        0    // right middle
+    };
+
+    private static final float[] coefs = new float[]{
+        2f,
+        2f,
+        1.5f,
+        1.5f,
+        1f,
+        1f
+    };
+
+    float value = 75;
+    float mapped = map(value, 0, 100, 0, 1); // → 0.75
+
+    public float map(float value, float a1, float a2, float b1, float b2) {
+        return b1 + (value - a1) * (b2 - b1) / (a2 - a1);
+    }
+    private float easeOutCubic(float t) {
+        return 1 - (float) Math.pow(1 - t, 3);
+    }
 
     @Override
     protected void dispatchDraw(@NonNull Canvas canvas) {
         if (gifts.isEmpty() || expandProgress >= 1.0f) return;
 
-        final float ax = avatarContainer.getX();
-        final float ay = avatarContainer.getY();
-        final float aw = (avatarContainer.getWidth()) * avatarContainer.getScaleX();
-        final float ah = (avatarContainer.getHeight()) * avatarContainer.getScaleY();
+        final float avatarX = avatarContainer.getX();
+        final float avatarY = avatarContainer.getY();
+        final float avatarWidth = (avatarContainer.getWidth()) * avatarContainer.getScaleX();
+        final float avatarHeight = (avatarContainer.getHeight()) * avatarContainer.getScaleY();
 
         canvas.save();
         canvas.clipRect(0, 0, getWidth(), expandY);
 
-        final float acx = ax + aw / 2.0f;
+        final float acx = avatarX + avatarWidth / 2.0f;
         final float cacx = Math.min(acx, dp(48));
-        final float acy = ay + ah / 2.0f;
-        final float ar = Math.min(aw, ah) / 2.0f + dp(6);
-        final float cx = getWidth() / 2.0f;
-
-        final float closedAlpha = Utilities.clamp01((float) (expandY - (AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight())) / dp(50));
+        final float acy = avatarY + avatarHeight / 2.0f;
+        final float avatarRadius = Math.min(avatarWidth, avatarHeight) / 2.0f + dp(20);
+        final float centerX = getWidth() / 2.0f;
+        final float progress1 = Math.max(1f - Math.max((633f - expandY) / 633f, 0), 0);
+        float progress = Math.max(map(progress1, 1f, 0.9f,  1f, 0f), 0);
+        final float closedAlpha = Utilities.clamp01( (expandY - (AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight())) / dp(50));
+//        System.out.println("Pattern:" +actionBarProgress + " " + progress + " " + progress1 + " " + avatarY + " " + avatarContainer.getTranslationY() + " " + expandProgress + " " + expandY + " " + closedAlpha);
 
         for (int i = 0; i < gifts.size(); ++i) {
-            final Gift gift = gifts.get(i);
-            final float alpha = gift.animatedFloat.set(1.0f);
-            final float scale = lerp(0.5f, 1.0f, alpha);
-            final int index = i; // gifts.size() == maxCount ? i - 1 : i;
-            if (index == 0) {
-                gift.draw(
-                    canvas,
-                    (float) (acx + ar * Math.cos(-65 / 180.0f * Math.PI)),
-                    (float) (acy + ar * Math.sin(-65 / 180.0f * Math.PI)),
-                    scale, -65 + 90,
-                    alpha * (1.0f - expandProgress), lerp(0.9f, 0.25f, actionBarProgress)
-                );
-            } else if (index == 1) {
-                gift.draw(
-                    canvas,
-                    lerp(cacx + Math.min(getWidth() * .27f, dp(62)), cx, 0.5f * actionBarProgress), acy - dp(52),
-                    scale, -4.0f,
-                    alpha * alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
-                );
-            } else if (index == 2) {
-                gift.draw(
-                    canvas,
-                    lerp(cacx + Math.min(getWidth() * .46f, dp(105)), cx, 0.5f * actionBarProgress), acy - dp(72),
-                    scale, 8.0f,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
-                );
-            } else if (index == 3) {
-                gift.draw(
-                    canvas,
-                    lerp(cacx + Math.min(getWidth() * .60f, dp(136)), cx, 0.5f * actionBarProgress), acy - dp(46),
-                    scale, 3.0f,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
-                );
-            } else if (index == 4) {
-                gift.draw(
-                    canvas,
-                    lerp(cacx + Math.min(getWidth() * .08f, dp(21.6f)), cx, 0.5f * actionBarProgress), acy - dp(82f),
-                    scale, -3.0f,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
-                );
-            } else if (index == 5) {
-                gift.draw(
-                    canvas,
-                    lerp(cacx + Math.min(getWidth() * .745f, dp(186)), cx, 0.5f * actionBarProgress), acy - dp(39),
-                    scale, 2.0f,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
-                );
-            } else if (index == 6) {
-                gift.draw(
-                    canvas,
-                    cacx + Math.min(getWidth() * .38f, dp(102)), expandY - dp(12),
-                    scale, 0,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
-                );
-            } else if (index == 7) {
-                gift.draw(
-                    canvas,
-                    cacx + Math.min(getWidth() * .135f, dp(36)), expandY - dp(17.6f),
-                    scale, -5.0f,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
-                );
-            } else if (index == 8) {
-                gift.draw(
-                    canvas,
-                    cacx + Math.min(getWidth() * .76f, dp(178)), expandY - dp(21.66f),
-                    scale, 5.0f,
-                    alpha * (1.0f - expandProgress) * (1.0f - actionBarProgress) * (closedAlpha),
-                    1.0f
-                );
+            if (i >= 6) {
+                break;
             }
-        }
 
+            Gift gift = gifts.get(i);
+            float angleDeg = anglesDeg[i];
+            float angleRad = (float) Math.toRadians(angleDeg);
+
+            float baseX = (float) (acx + avatarRadius * Math.cos(angleRad));
+            float baseY = (float) (acy + avatarRadius * Math.sin(angleRad));
+            if (i == 4) {
+                baseX -= shift2;
+            } else if (i == 5) {
+                baseX += shift2;
+            } else {
+                if (angleDeg > 90 && angleDeg < 270) {
+                    baseX -= shift;
+                } else {
+                    baseX += shift;
+                }
+            }
+            float vx = baseX - acx;
+            float vy = baseY - acy;
+
+            float radius = (float) Math.sqrt(vx * vx + vy * vy);
+
+            float angle = (float) Math.atan2(vy, vx);
+
+            int group = i / 2;
+            float groupDelay = 0.15f * (2 - group);
+            float localProgress = (progress - groupDelay) / 0.5f;
+            localProgress = Math.max(0f, Math.min(localProgress, 1f));
+            localProgress = easeOutCubic(localProgress);
+
+            angle += (float) (localProgress * 0.5f - Math.toRadians(30));
+
+            float coefficient = coefs[i];
+            float newRadius = Math.min(radius, radius * (localProgress * coefficient));
+
+            float giftX = acx + (float) (newRadius * Math.cos(angle));
+            float giftY = acy + (float) (newRadius * Math.sin(angle));
+
+            float alpha = gift.animatedFloat.set(1.0f);
+            float scale = lerp(0.5f, 1.0f, alpha);
+
+            gift.draw(
+                canvas,
+                giftX,
+                giftY,
+                scale,
+                angleDeg - 90,
+                alpha * Math.min(localProgress,  (1.0f - expandProgress)) * closedAlpha,
+                lerp(0.9f, 0.25f, actionBarProgress)
+            );
+        }
         canvas.restore();
     }
 

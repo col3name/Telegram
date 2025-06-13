@@ -326,7 +326,8 @@ public class LimitReachedBottomSheet extends BottomSheetWithRecyclerListView imp
         fixNavigationBar(Theme.getColor(Theme.key_dialogBackground, this.resourcesProvider));
         this.parentFragment = fragment;
         this.currentAccount = currentAccount;
-        this.type = type;
+       this.type = type;
+        // this.type = TYPE_CALL_RESTRICTED;
         updateTitle();
         updateRows();
         if (type == TYPE_PUBLIC_LINKS) {

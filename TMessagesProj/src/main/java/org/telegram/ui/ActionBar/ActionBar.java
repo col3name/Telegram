@@ -888,11 +888,8 @@ public class ActionBar extends FrameLayout {
             if (actionBarColor == 0) {
                 NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.needCheckSystemBarColors);
             } else {
-                if (ColorUtils.calculateLuminance(actionBarColor) < 0.7f) {
-                    AndroidUtilities.setLightStatusBar(((Activity) getContext()).getWindow(), false);
-                } else {
-                    AndroidUtilities.setLightStatusBar(((Activity) getContext()).getWindow(), true);
-                }
+                boolean isDisabled = ColorUtils.calculateLuminance(actionBarColor) < 0.7f;
+                AndroidUtilities.setLightStatusBar(((Activity) getContext()).getWindow(), !isDisabled);
             }
         }
         if (actionModeAnimation != null) {

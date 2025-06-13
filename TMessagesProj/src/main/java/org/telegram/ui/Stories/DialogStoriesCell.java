@@ -476,7 +476,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                     currentTitle = str;
                 }
             } else {
-                currentTitle = LocaleController.getString(R.string.MyStory);
+                currentTitle = LocaleController.getString(R.string.MyStory) + "slf2";
             }
         } else {
             currentTitle = LocaleController.formatPluralString("Stories", totalCount);
@@ -895,14 +895,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
             }
         }
 
-        StoryCell cell = null;
-        for (int i = 0 ; i < recyclerListView.getChildCount(); i++) {
-            StoryCell storyCell = (StoryCell) recyclerListView.getChildAt(i);
-            if (dialogId == 0 ? storyCell.isSelf : storyCell.dialogId == dialogId) {
-                cell = storyCell;
-                break;
-            }
-        }
+        StoryCell cell = findSelfCellByDialogId(dialogId);
         if (cell == null) {
             return;
         }
@@ -923,6 +916,18 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
         } else {
             StoryRecorder.getInstance(fragment.getParentActivity(), currentAccount).open(StoryRecorder.SourceView.fromStoryCell(cell));
         }
+    }
+
+    private StoryCell findSelfCellByDialogId(long dialogId) {
+        StoryCell cell = null;
+        for (int i = 0 ; i < recyclerListView.getChildCount(); i++) {
+            StoryCell storyCell = (StoryCell) recyclerListView.getChildAt(i);
+            if (dialogId == 0 ? storyCell.isSelf : storyCell.dialogId == dialogId) {
+                cell = storyCell;
+                break;
+            }
+        }
+        return cell;
     }
 
     EllipsizeSpanAnimator ellipsizeSpanAnimator = new EllipsizeSpanAnimator(this);
@@ -1257,7 +1262,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                     AndroidUtilities.runOnUIThread(animationRunnable, 500);
                     isUploadingState = false;
                     textView.setTextSize(10);
-                    textView.setText(LocaleController.getString(R.string.MyStory));
+                    textView.setText(LocaleController.getString(R.string.MyStory) + "slf");
                 } else if (user != null) {
                     textView.setTextSize(11);
                     String name = user.first_name == null ? "" : user.first_name.trim();

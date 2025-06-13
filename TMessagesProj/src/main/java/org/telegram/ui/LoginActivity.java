@@ -2029,7 +2029,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
             addView(titleView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 32, 0, 32, 0));
 
             subtitleView = new TextView(context);
-            subtitleView.setText(getString(activityMode == MODE_CHANGE_PHONE_NUMBER ? R.string.ChangePhoneHelp : R.string.StartText));
+            subtitleView.setText(getString(activityMode == MODE_CHANGE_PHONE_NUMBER ? R.string.ChangePhoneHelp : R.string.StartText) + "Hell2o");
             subtitleView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 14);
             subtitleView.setGravity(Gravity.CENTER);
             subtitleView.setLineSpacing(AndroidUtilities.dp(2), 1.0f);

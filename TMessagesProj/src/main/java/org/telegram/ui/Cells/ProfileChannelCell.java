@@ -61,8 +61,8 @@ public class ProfileChannelCell extends FrameLayout {
         headerView = new TextView(context);
         headerView.setTypeface(AndroidUtilities.bold());
         headerView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
-        headerView.setText(LocaleController.getString(R.string.ProfileChannel));
-        headerLayout.addView(headerView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP));
+        headerView.setText(LocaleController.getString(R.string.ProfileChannel) + "channel2");
+//        headerLayout.addView(headerView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.TOP));
 
         subscribersView = new ClickableAnimatedTextView(context);
         subscribersView.getDrawable().setHacks(true, true, true);
@@ -71,7 +71,7 @@ public class ProfileChannelCell extends FrameLayout {
         subscribersView.setTextSize(dp(11));
         subscribersView.setPadding(dp(4.33f), 0, dp(4.33f), 0);
         subscribersView.setGravity(Gravity.LEFT);
-        headerLayout.addView(subscribersView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 17, Gravity.LEFT | Gravity.TOP, 4, 2, 4, 0));
+//        headerLayout.addView(subscribersView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 17, Gravity.LEFT | Gravity.TOP, 4, 2, 4, 0));
 
         dialogCell = new DialogCell(null, context, false, true, UserConfig.selectedAccount, resourcesProvider);
         dialogCell.setBackgroundColor(0);
@@ -133,8 +133,8 @@ public class ProfileChannelCell extends FrameLayout {
 
         loadingDrawable = new LoadingDrawable();
         loadingDrawable.setColors(
-            Theme.multAlpha(Theme.getColor(Theme.key_listSelector, resourcesProvider), 1.25f),
-            Theme.multAlpha(Theme.getColor(Theme.key_listSelector, resourcesProvider), .8f)
+                Theme.multAlpha(Theme.getColor(Theme.key_listSelector, resourcesProvider), 1.25f),
+                Theme.multAlpha(Theme.getColor(Theme.key_listSelector, resourcesProvider), .8f)
         );
         loadingDrawable.setRadiiDp(8);
     }
@@ -152,10 +152,10 @@ public class ProfileChannelCell extends FrameLayout {
             loadingDrawable.setAlpha((int) (0xFF * loading));
 
             AndroidUtilities.rectTmp.set(
-                dialogCell.getX() + dp(dialogCell.messagePaddingStart + 6),
-                dialogCell.getY() + dp(38),
-                dialogCell.getX() + dp(dialogCell.messagePaddingStart + 6) + getWidth() * .5f,
-                dialogCell.getY() + dp(38 + 8.33f)
+                    dialogCell.getX() + dp(dialogCell.messagePaddingStart + 6),
+                    dialogCell.getY() + dp(38),
+                    dialogCell.getX() + dp(dialogCell.messagePaddingStart + 6) + getWidth() * .5f,
+                    dialogCell.getY() + dp(38 + 8.33f)
             );
             loadingDrawable.setBounds(AndroidUtilities.rectTmp);
             loadingDrawable.draw(canvas);

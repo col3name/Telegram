@@ -337,6 +337,23 @@ public class StoryRecorder implements NotificationCenter.NotificationCenterDeleg
             return src;
         }
 
+        public static SourceView fromEmpty() {
+            SourceView src = new SourceView() {
+                @Override
+                protected void show(boolean sent) {
+                    // floatingButton.setVisibility(View.VISIBLE);
+                }
+                @Override
+                protected void hide() {
+                    // floatingButton.post(() -> {
+                    //     floatingButton.setVisibility(View.GONE);
+                    // });
+                }
+            };
+
+            return src;
+        }
+
         public static SourceView fromFloatingButton(FrameLayout floatingButton) {
             if (floatingButton == null) {
                 return null;

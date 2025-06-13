@@ -44,7 +44,9 @@ public class QuickShareSelectorOverlayLayout extends View {
             drawablesForRemove.add(key);
             invalidate();
         });
-        drawable.setBounds(0, 0, getMeasuredWidth(), getMeasuredHeight());
+        int right = getMeasuredWidth();
+        int bottom = getMeasuredHeight();
+        drawable.setBounds(0, 0, right, bottom);
         drawable.setCallback(this);
 
         if (!drawableHashMap.containsKey(key)) {

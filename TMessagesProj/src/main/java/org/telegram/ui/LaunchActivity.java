@@ -202,6 +202,7 @@ import org.telegram.ui.Components.UndoView;
 import org.telegram.ui.Components.spoilers.SpoilerEffect2;
 import org.telegram.ui.Components.voip.RTMPStreamPipOverlay;
 import org.telegram.ui.Components.voip.VoIPHelper;
+import org.telegram.ui.Profile.Logger;
 import org.telegram.ui.Stars.ISuperRipple;
 import org.telegram.ui.Stars.StarGiftSheet;
 import org.telegram.ui.Stars.StarsController;
@@ -3240,7 +3241,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                     bulletinText = "Logs enabled.";
                     ApplicationLoader.applicationContext.getSharedPreferences("systemConfig", Context.MODE_PRIVATE).edit().putBoolean("logsEnabled", BuildVars.LOGS_ENABLED = true).commit();
                 } else if (open_settings == 8) {
-                    ProfileActivity.sendLogs(LaunchActivity.this, false);
+                    Logger.sendLogs(LaunchActivity.this, false);
                 } else if (open_settings == 9) {
                     bulletinText = "Logs disabled.";
                     ApplicationLoader.applicationContext.getSharedPreferences("systemConfig", Context.MODE_PRIVATE).edit().putBoolean("logsEnabled", BuildVars.LOGS_ENABLED = false).commit();

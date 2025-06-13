@@ -639,7 +639,7 @@ public class ProfileSearchCell extends BaseCell implements NotificationCenter.No
                         isOnline = new boolean[1];
                     }
                     isOnline[0] = false;
-                    statusString = LocaleController.formatUserStatus(currentAccount, user, isOnline);
+                    statusString = LocaleController.formatUserStatus(currentAccount, user, isOnline) + "sf5";
                     if (isOnline[0]) {
                         currentStatusPaint = Theme.dialogs_onlinePaint;
                     }
