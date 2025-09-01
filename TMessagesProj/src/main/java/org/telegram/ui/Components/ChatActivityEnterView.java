@@ -6966,7 +6966,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             return;
         }
 
-        if (editingMessageObject.needResendWhenEdit()) {
+        if (editingMessageObject.needResendWhenEdit() && !ChatObject.canManageMonoForum(currentAccount, editingMessageObject.getDialogId())) {
             final MessageSuggestionParams params = parentFragment != null && parentFragment.messageSuggestionParams != null ?
                 parentFragment.messageSuggestionParams : MessageSuggestionParams.of(editingMessageObject.messageOwner.suggested_post);
 
@@ -9698,7 +9698,7 @@ public class ChatActivityEnterView extends BlurredFrameLayout implements Notific
             !MessagesController.getInstance(currentAccount).premiumPurchaseBlocked() &&
             getParentFragment() != null && user != null &&
             !BuildVars.IS_BILLING_UNAVAILABLE &&
-            !UserObject.isUserSelf(user) &&
+            (!UserObject.isUserSelf(user) || myUserInfo != null && myUserInfo.display_gifts_button) &&
             !UserObject.isBot(user) &&
             !MessagesController.isSupportUser(user) &&
             userInfo != null &&
